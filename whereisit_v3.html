@@ -1,0 +1,2082 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>whereisit — el marketplace de tu edificio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+:root {
+  --g:     #0B3D5C;  /* azul petróleo principal */
+  --g-l:   #E7F0F5;  /* azul hielo */
+  --g-d:   #06263A;  /* azul profundo */
+  --g-m:   #0F567D;  /* azul medio */
+  --b:     #B87333;  /* cobre chileno / locker */
+  --b-l:   #F5E8DA;  /* cobre claro */
+  --b-d:   #6B3A16;  /* cobre oscuro */
+  --am:    #BA7517;
+  --am-l:  #FAEEDA;
+  --re-l:  #FAECE7;
+  --re-d:  #712B13;
+  --bg:    #FBFAF7;
+  --bg2:   #F0EEE8;
+  --bg3:   #E5E1D8;
+  --bdr:   rgba(0,0,0,0.09);
+  --bdr2:  rgba(0,0,0,0.18);
+  --t:     #18180f;
+  --t2:    #6b6b60;
+  --t3:    #a8a89c;
+  --r:     12px;
+  --r-sm:  8px;
+  --r-lg:  18px;
+  --font:  'DM Sans', sans-serif;
+  --head:  'Syne', sans-serif;
+  --mono:  'DM Mono', monospace;
+  --phone-w: 340px;
+  --shadow: 0 18px 55px rgba(6,38,58,0.18), 0 3px 12px rgba(0,0,0,0.07);
+}
+
+/* ── MOTION / POLISH ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes softPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 rgba(11,61,92,0); }
+  50% { transform: scale(1.03); box-shadow: 0 0 0 8px rgba(11,61,92,0.08); }
+}
+@keyframes pinPulse {
+  0%,100% { filter: drop-shadow(0 0 0 rgba(11,61,92,0)); }
+  50% { filter: drop-shadow(0 8px 14px rgba(11,61,92,.22)); }
+}
+@keyframes shimmer {
+  0% { background-position: -180% 0; }
+  100% { background-position: 180% 0; }
+}
+@keyframes ringPulse {
+  0%,100% { opacity:.35; transform: translate(-50%,-50%) scale(1); }
+  50% { opacity:.12; transform: translate(-50%,-50%) scale(1.08); }
+}
+
+.sidebar, .phone { animation: fadeUp .55s ease both; }
+.phone { animation-delay: .08s; }
+.nav-item, .item-card, .mode-card, .locker-row { transition: transform .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease; }
+.nav-item:hover, .item-card:hover, .mode-card:hover, .locker-row:hover { transform: translateY(-1px); }
+.btn-g, .btn-b { position: relative; overflow: hidden; }
+.btn-g::after, .btn-b::after {
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(110deg, transparent 0%, rgba(255,255,255,.18) 45%, transparent 70%);
+  background-size: 220% 100%; animation: shimmer 3.2s infinite; pointer-events:none;
+}
+.map-pin { animation: pinPulse 2.6s ease-in-out infinite; }
+.pin-bub.sel { animation: softPulse 2.4s ease-in-out infinite; }
+.uring { animation: ringPulse 3.2s ease-in-out infinite; }
+.splash-logo { animation: fadeUp .6s ease both; }
+.feat { animation: fadeUp .45s ease both; }
+.feat:nth-child(2){ animation-delay:.06s; }
+.feat:nth-child(3){ animation-delay:.12s; }
+.feat:nth-child(4){ animation-delay:.18s; }
+
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg2);
+  min-height: 100vh;
+  color: var(--t);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── LAYOUT ── */
+.site-wrap { display: flex; flex-direction: column; min-height: 100vh; }
+
+.header {
+  position: sticky; top: 0; z-index: 200;
+  background: var(--bg);
+  border-bottom: 0.5px solid var(--bdr);
+  padding: 0 32px;
+  height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.logo { font-family: var(--head); font-size: 20px; font-weight: 700; color: var(--g); letter-spacing: -0.5px; }
+.logo em { font-style: normal; color: var(--t); }
+.header-pills { display: flex; gap: 6px; align-items: center; }
+
+.main { display: flex; gap: 40px; padding: 40px 32px; max-width: 1140px; margin: 0 auto; width: 100%; align-items: flex-start; }
+
+/* ── SIDEBAR ── */
+.sidebar { width: 280px; flex-shrink: 0; position: sticky; top: 72px; }
+.sidebar-logo { font-family: var(--head); font-size: 32px; font-weight: 700; color: var(--g); letter-spacing: -1px; margin-bottom: 4px; }
+.sidebar-tagline { font-size: 13px; color: var(--t2); line-height: 1.5; margin-bottom: 24px; }
+
+.nav-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .08em; color: var(--t3); padding: 0 4px; margin-bottom: 6px; margin-top: 16px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: var(--r-sm); cursor: pointer;
+  font-size: 13px; color: var(--t2); font-weight: 400;
+  transition: background .12s, color .12s;
+  border: 1.5px solid transparent;
+}
+.nav-item:hover { background: var(--bg2); color: var(--t); }
+.nav-item.active { background: var(--g-l); color: var(--g-d); border-color: var(--g); font-weight: 500; }
+.nav-item i { font-size: 18px; flex-shrink: 0; }
+
+.sidebar-stats {
+  margin-top: 20px;
+  background: var(--bg);
+  border: 0.5px solid var(--bdr);
+  border-radius: var(--r);
+  padding: 14px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+.s-stat { text-align: center; }
+.s-num { font-size: 18px; font-weight: 500; color: var(--g); font-family: var(--head); }
+.s-label { font-size: 10px; color: var(--t2); margin-top: 1px; }
+
+.blue-card {
+  margin-top: 12px;
+  background: var(--b-l);
+  border-radius: var(--r);
+  padding: 12px 14px;
+  display: flex; gap: 10px; align-items: center;
+  font-size: 12px; color: var(--b-d); font-weight: 400; line-height: 1.5;
+}
+
+/* ── PHONE ── */
+.phone-area { flex: 1; display: flex; justify-content: center; }
+.phone {
+  width: var(--phone-w);
+  background: var(--bg);
+  border-radius: 42px;
+  border: 2px solid var(--bdr2);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  min-height: 680px;
+  box-shadow: var(--shadow);
+}
+.status-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 22px 4px;
+  font-size: 11px; font-weight: 500; color: var(--t2);
+  flex-shrink: 0;
+}
+.screen { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+.screen.active { display: flex; }
+
+/* ── TOPBAR ── */
+.topbar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px; border-bottom: 0.5px solid var(--bdr);
+  flex-shrink: 0;
+}
+.topbar-title { font-size: 15px; font-weight: 500; flex: 1; color: var(--t); }
+
+/* ── BUTTONS ── */
+.btn-g {
+  width: 100%; padding: 13px;
+  background: var(--g); color: #fff;
+  border: none; border-radius: var(--r); font-size: 14px; font-weight: 500;
+  cursor: pointer; font-family: var(--font);
+  transition: background .15s, transform .1s;
+}
+.btn-g:hover { background: var(--g-m); }
+.btn-g:active { transform: scale(.98); }
+.btn-o {
+  width: 100%; padding: 11px;
+  background: transparent; color: var(--t2);
+  border: 0.5px solid var(--bdr2);
+  border-radius: var(--r); font-size: 13px;
+  cursor: pointer; font-family: var(--font); margin-top: 8px;
+  transition: background .12s;
+}
+.btn-o:hover { background: var(--bg2); }
+.btn-b {
+  width: 100%; padding: 11px;
+  background: var(--b-l); color: var(--b-d);
+  border: 0.5px solid rgba(24,95,165,.2);
+  border-radius: var(--r); font-size: 13px; font-weight: 500;
+  cursor: pointer; font-family: var(--font); margin-top: 8px;
+  transition: background .12s;
+}
+.btn-b:hover { background: #d4e7f7; }
+.cta { padding: 12px 16px; border-top: 0.5px solid var(--bdr); flex-shrink: 0; }
+
+/* ── FORM ── */
+.inp {
+  width: 100%; padding: 11px 14px;
+  border: 0.5px solid var(--bdr2); border-radius: var(--r-sm);
+  font-size: 13px; font-family: var(--font);
+  background: var(--bg); color: var(--t); outline: none;
+  transition: border-color .15s;
+}
+.inp:focus { border-color: var(--g); box-shadow: 0 0 0 3px rgba(29,158,117,.1); }
+.field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 11px; }
+.lbl { font-size: 12px; font-weight: 500; color: var(--t2); }
+
+/* ── PILLS ── */
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px; border-radius: 20px;
+  font-size: 11px; font-weight: 500; white-space: nowrap;
+}
+.p-g  { background: var(--g-l);  color: var(--g-d); }
+.p-b  { background: var(--b-l);  color: var(--b-d); }
+.p-am { background: var(--am-l); color: var(--am); }
+.p-gr { background: var(--bg2);  color: var(--t2); }
+.p-re { background: var(--re-l); color: var(--re-d); }
+
+/* ── LISTS & ROWS ── */
+.row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 16px;
+  border-bottom: 0.5px solid var(--bdr);
+  transition: background .1s;
+}
+.row:last-child { border-bottom: none; }
+.row-tap { cursor: pointer; }
+.row-tap:hover { background: var(--bg2); }
+
+/* ── AVATARS ── */
+.av {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; flex-shrink: 0;
+}
+.av-jc { background: #CECBF6; color: #3C3489; }
+.av-mk { background: #9FE1CB; color: #085041; }
+.av-cr { background: #B5D4F4; color: #0C447C; }
+.av-ap { background: #FAC775; color: #633806; }
+.av-ls { background: #F4C0D1; color: #72243E; }
+
+/* ── STARS ── */
+.star { color: #EF9F27; font-size: 12px; }
+.star-empty { color: var(--t3); font-size: 12px; }
+
+/* ── INFO BOXES ── */
+.info { display: flex; gap: 9px; align-items: flex-start; border-radius: var(--r-sm); padding: 10px 12px; }
+.info p { font-size: 11px; line-height: 1.5; }
+.info-g { background: var(--g-l); }  .info-g i, .info-g p { color: var(--g-d); }
+.info-b { background: var(--b-l); }  .info-b i, .info-b p { color: var(--b-d); }
+.info-am{ background: var(--am-l); } .info-am i, .info-am p { color: var(--am); }
+.info-re{ background: var(--re-l); } .info-re i, .info-re p { color: var(--re-d); }
+
+/* ── STEP INDICATOR ── */
+.steps-row {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg2); border-radius: var(--r-sm); padding: 9px 12px;
+  margin: 0 16px 12px; flex-shrink: 0;
+}
+.step-dot {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; flex-shrink: 0;
+}
+.sd-done { background: var(--g); color: #fff; }
+.sd-active { background: var(--t); color: #fff; }
+.sd-todo { background: var(--bg3); color: var(--t2); }
+.step-label { font-size: 12px; color: var(--t2); margin-left: 4px; }
+
+/* ── UPLOAD BOX ── */
+.upload {
+  border: 1.5px dashed var(--bdr2); border-radius: var(--r);
+  padding: 18px; text-align: center; cursor: pointer;
+  margin-bottom: 10px; transition: background .12s, border-color .12s;
+}
+.upload:hover { background: var(--bg2); border-color: var(--g); }
+.upload.done { border-color: var(--g); background: var(--g-l); border-style: solid; }
+
+/* ── TAB BAR ── */
+.tab-bar { display: flex; border-top: 0.5px solid var(--bdr); padding: 8px 0 10px; flex-shrink: 0; }
+.tab-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  font-size: 10px; color: var(--t3); cursor: pointer; transition: color .12s;
+}
+.tab-item:hover, .tab-item.active { color: var(--g); }
+
+/* ── PROFILE HEADER ── */
+.prof-header {
+  background: linear-gradient(135deg, #0F6E56 0%, #1D9E75 60%, #5DCAA5 100%);
+  padding: 20px 16px 16px;
+  flex-shrink: 0;
+}
+.prof-header-top { display: flex; align-items: flex-start; gap: 14px; }
+.av-large {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: rgba(255,255,255,.25);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; font-weight: 600; color: #fff;
+  font-family: var(--head); flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,.4);
+}
+.prof-name { font-size: 18px; font-weight: 500; color: #fff; margin-bottom: 3px; }
+.prof-tag { display: flex; align-items: center; gap: 5px; font-size: 12px; color: rgba(255,255,255,.85); margin-bottom: 3px; }
+.prof-sub { font-size: 11px; color: rgba(255,255,255,.65); }
+.prof-stats { display: flex; gap: 8px; margin-top: 14px; }
+.pstat {
+  flex: 1; background: rgba(255,255,255,.15);
+  border-radius: var(--r-sm); padding: 9px; text-align: center;
+  backdrop-filter: blur(4px);
+}
+.pstat-num { font-size: 18px; font-weight: 600; color: #fff; font-family: var(--head); }
+.pstat-label { font-size: 10px; color: rgba(255,255,255,.7); margin-top: 1px; }
+
+/* ── PROFILE TABS ── */
+.ptabs { display: flex; border-bottom: 0.5px solid var(--bdr); flex-shrink: 0; }
+.ptab {
+  flex: 1; text-align: center; padding: 10px 4px;
+  font-size: 12px; font-weight: 500; cursor: pointer; color: var(--t2);
+  border-bottom: 2px solid transparent; transition: color .12s, border-color .12s;
+}
+.ptab.active { color: var(--g); border-bottom-color: var(--g); }
+
+/* ── REVIEWS PAGE ── */
+.rating-big { font-size: 42px; font-weight: 700; color: var(--t); font-family: var(--head); }
+.bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+.bar-track { flex: 1; height: 6px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; background: var(--g); }
+
+/* ── SALES PANEL ── */
+.kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px 16px; border-bottom: 0.5px solid var(--bdr); flex-shrink: 0; }
+.kpi { background: var(--bg2); border-radius: var(--r-sm); padding: 12px; text-align: center; }
+.kpi-num { font-size: 20px; font-weight: 600; font-family: var(--head); }
+.kpi-sub { font-size: 10px; color: var(--t2); margin-top: 2px; }
+
+/* ── NOTIFICATION BADGE ── */
+.notif-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--g); flex-shrink: 0; margin-top: 4px;
+}
+
+/* ── SCROLLABLE INNER ── */
+.scroll { flex: 1; overflow-y: auto; }
+.scroll::-webkit-scrollbar { width: 3px; }
+.scroll::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 2px; }
+
+/* ── ONBOARDING FEATURE ITEM ── */
+.feat { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
+.feat-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.feat-title { font-size: 13px; font-weight: 500; color: var(--t); }
+.feat-sub   { font-size: 12px; color: var(--t2); }
+
+/* ── ITEM CARD IN LIST ── */
+.item-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 16px; border-bottom: 0.5px solid var(--bdr);
+  cursor: pointer; transition: background .1s;
+}
+.item-card:hover { background: var(--bg2); }
+.item-img {
+  width: 50px; height: 50px; border-radius: var(--r-sm);
+  background: var(--bg2); border: 0.5px solid var(--bdr);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; flex-shrink: 0;
+}
+.item-name  { font-size: 13px; font-weight: 500; color: var(--t); margin-bottom: 2px; }
+.item-sub   { font-size: 12px; color: var(--t2); margin-bottom: 3px; }
+.item-price { font-size: 14px; font-weight: 500; color: var(--g); }
+
+/* ── SECTION LABEL ── */
+.sec-label {
+  font-size: 10px; font-weight: 500; text-transform: uppercase;
+  letter-spacing: .07em; color: var(--t3); padding: 10px 16px 4px;
+  flex-shrink: 0;
+}
+
+/* ── MAP ── */
+.map-area { position: relative; height: 260px; background: #dde8dd; overflow: hidden; flex-shrink: 0; }
+.map-pin { position: absolute; transform: translate(-50%,-100%); display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform .15s; }
+.map-pin:hover { transform: translate(-50%,-100%) scale(1.1); }
+.pin-bub { background: var(--bg); border: 1.5px solid var(--g); border-radius: 16px; padding: 4px 9px; font-size: 11px; font-weight: 500; color: var(--g-d); white-space: nowrap; }
+.pin-bub.sel { background: var(--g); color: #fff; }
+.pin-bub.lk  { border-color: var(--b); color: var(--b-d); }
+.pin-tail { width: 2px; height: 7px; background: var(--g); }
+.pin-dot  { width: 6px; height: 6px; border-radius: 50%; background: var(--g); }
+.user-pos { position: absolute; transform: translate(-50%,-50%); }
+.udot { width: 14px; height: 14px; border-radius: 50%; background: var(--b); border: 2.5px solid #fff; }
+.uring { position: absolute; border-radius: 50%; border: 1.5px solid rgba(29,158,117,.28); transform: translate(-50%,-50%); }
+.map-card { position: absolute; bottom: 0; left: 0; right: 0; background: var(--bg); border-top: 0.5px solid var(--bdr); padding: 10px 14px; }
+
+.privacy-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 500;
+  padding: 3px 7px; border-radius: 12px;
+  background: var(--b-l); color: var(--b-d);
+}
+.privacy-card {
+  position: absolute; top: 42px; right: 10px;
+  max-width: 132px;
+  background: rgba(250,250,248,.94);
+  border: 0.5px solid var(--bdr);
+  border-radius: var(--r-sm);
+  padding: 7px 8px;
+  font-size: 10px;
+  color: var(--t2);
+  line-height: 1.35;
+  box-shadow: 0 3px 12px rgba(0,0,0,.05);
+}
+.approx-zone {
+  position: absolute;
+  width: 54px; height: 54px; border-radius: 50%;
+  background: rgba(24,95,165,.10);
+  border: 1px dashed rgba(24,95,165,.45);
+  transform: translate(-50%,-50%);
+  pointer-events: none;
+}
+
+/* ── ONBOARDING SPLASH ── */
+.splash-logo {
+  font-family: var(--head); font-size: 38px; font-weight: 700;
+  color: var(--g); letter-spacing: -2px; margin-bottom: 4px;
+}
+.splash-sub { font-size: 13px; color: var(--t2); line-height: 1.6; margin-bottom: 28px; }
+
+/* ── BADGE VERIFIED ── */
+.verified-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--g-l); border-radius: 20px;
+  padding: 4px 10px; font-size: 12px; font-weight: 500; color: var(--g-d);
+}
+
+/* ── POINTS / GAMIFICATION ── */
+.points-card {
+  margin: 10px 16px;
+  background: linear-gradient(120deg, #085041, #1D9E75);
+  border-radius: var(--r);
+  padding: 14px 16px;
+  color: #fff;
+}
+.pts-num { font-size: 28px; font-weight: 700; font-family: var(--head); }
+
+/* ── FOOTER ── */
+footer {
+  text-align: center; padding: 20px;
+  font-size: 12px; color: var(--t3);
+  border-top: 0.5px solid var(--bdr);
+  background: var(--bg);
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width: 900px) {
+  .main { flex-direction: column; align-items: center; padding: 24px 16px; }
+  .sidebar { width: 100%; max-width: 400px; position: static; }
+  .sidebar-stats { grid-template-columns: repeat(4,1fr); }
+}
+
+
+/* ── ALIASES + COMPRA SEGURA / LOCKER FLOW ── */
+:root{
+  --green: var(--g); --green-light: var(--g-l); --green-dark: var(--g-d); --green-mid: var(--g-m);
+  --blue: var(--b); --blue-light: var(--b-l); --blue-dark: var(--b-d);
+  --amber: var(--am); --amber-light: var(--am-l);
+  --border: var(--bdr); --border2: var(--bdr2); --text: var(--t); --text2: var(--t2); --text3: var(--t3);
+  --radius: var(--r); --radius-sm: var(--r-sm);
+}
+.btn-green{width:100%;padding:13px;background:var(--g);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font);transition:background .15s,transform .1s;}
+.btn-green:hover{background:var(--g-m);} .btn-green:active{transform:scale(.98);}
+.btn-outline{width:100%;padding:11px;background:transparent;color:var(--t2);border:.5px solid var(--bdr2);border-radius:var(--r);font-size:13px;cursor:pointer;font-family:var(--font);margin-top:8px;transition:background .12s;}
+.btn-outline:hover{background:var(--bg2);}
+.mode-card{margin:8px 16px;border-radius:var(--r);border:1.5px solid var(--bdr);padding:14px;cursor:pointer;transition:border-color .15s,background .15s;}
+.mode-card:hover{border-color:var(--g);} .mode-card.selected{border:2px solid var(--g);background:var(--g-l);} 
+.mode-title{font-size:14px;font-weight:500;color:var(--t);margin-bottom:3px;} .mode-sub{font-size:12px;color:var(--t2);line-height:1.4;}
+.divider{display:flex;align-items:center;gap:8px;padding:6px 16px;font-size:11px;color:var(--t3);}
+.divider::before,.divider::after{content:'';flex:1;height:.5px;background:var(--bdr);}
+.locker-row{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:.5px solid var(--bdr);cursor:pointer;transition:background .12s;}
+.locker-row:hover{background:var(--bg2);} .locker-row.sel{background:var(--g-l);} 
+.copec-dot{width:36px;height:36px;border-radius:var(--r-sm);background:var(--b-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.open24{background:var(--b-l);color:var(--b-d);font-size:10px;font-weight:500;padding:2px 6px;border-radius:8px;}
+.info-box{display:flex;gap:9px;align-items:flex-start;border-radius:var(--r-sm);padding:10px 12px;margin:8px 16px 0;}
+.info-green{background:var(--g-l);} .info-blue{background:var(--b-l);} .info-amber{background:var(--am-l);} 
+.info-box p{font-size:11px;line-height:1.5;} .info-green p{color:var(--g-d);} .info-blue p{color:var(--b-d);} .info-amber p{color:var(--am);} 
+.step-row{display:flex;gap:12px;padding:11px 16px;border-bottom:.5px solid var(--bdr);align-items:flex-start;}
+.step-num{width:22px;height:22px;border-radius:50%;background:var(--g);color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.step-title{font-size:13px;font-weight:500;color:var(--t);margin-bottom:2px;} .step-sub{font-size:12px;color:var(--t2);line-height:1.4;}
+.qr-box{width:96px;height:96px;background:var(--bg2);border:.5px solid var(--bdr);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;}
+.success-circle{width:64px;height:64px;border-radius:50%;background:var(--g-l);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
+.av-cr{background:#B5D4F4;color:#0C447C;} .av-mk{background:#9FE1CB;color:#085041;} .av-ap{background:#FAC775;color:#633806;} .av-lm{background:#F4C0D1;color:#72243E;}
+
+
+
+/* ── FINAL POLISH: microinteracciones, mapa premium y confianza visible ── */
+body{
+  background:
+    radial-gradient(circle at 20% 12%, rgba(29,158,117,.12), transparent 28%),
+    radial-gradient(circle at 86% 18%, rgba(24,95,165,.12), transparent 28%),
+    var(--bg2);
+}
+.header{ backdrop-filter: blur(12px); background: rgba(250,250,248,.88); }
+.phone{ box-shadow: 0 18px 60px rgba(0,0,0,.15), 0 2px 10px rgba(0,0,0,.06); }
+.screen.active{ animation: screenIn .24s ease-out; }
+@keyframes screenIn{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:translateY(0);} }
+.btn-g,.btn-green,.btn-b,.btn-o,.btn-outline,.mode-card,.item-card,.locker-row,.nav-item{ transition: transform .14s ease, background .14s ease, border-color .14s ease, box-shadow .14s ease; }
+.btn-g:hover,.btn-green:hover,.btn-b:hover,.mode-card:hover,.item-card:hover,.locker-row:hover{ transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,0,0,.06); }
+
+/* Mapa más startup */
+.map-area{
+  background:#0e1714 !important;
+  border-radius: 0;
+}
+.map-area svg{ opacity:.62; filter:saturate(.8) contrast(1.05); }
+.map-area::after{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background: radial-gradient(circle at 50% 50%, rgba(29,158,117,.18), transparent 34%),
+              linear-gradient(180deg, rgba(0,0,0,.12), transparent 45%, rgba(0,0,0,.20));
+}
+.pin-bub{ box-shadow:0 6px 16px rgba(0,0,0,.18); border-width:1px; }
+.pin-bub.sel{ box-shadow:0 0 0 4px rgba(29,158,117,.18), 0 8px 20px rgba(0,0,0,.18); }
+.approx-zone{ box-shadow:0 0 22px rgba(24,95,165,.22); animation:pulseZone 1.8s ease-in-out infinite; }
+.uring{ animation:pulseRing 2.1s ease-in-out infinite; }
+@keyframes pulseRing{ 0%,100%{opacity:.45; transform:translate(-50%,-50%) scale(.98);} 50%{opacity:1; transform:translate(-50%,-50%) scale(1.04);} }
+@keyframes pulseZone{ 0%,100%{opacity:.55; transform:translate(-50%,-50%) scale(.95);} 50%{opacity:1; transform:translate(-50%,-50%) scale(1.06);} }
+.map-card{ backdrop-filter: blur(14px); background: rgba(250,250,248,.94); }
+.privacy-card{ backdrop-filter: blur(12px); z-index:3; }
+
+/* Seguridad persistente */
+.secure-strip{
+  margin: 8px 16px 0; padding: 9px 10px;
+  border-radius: var(--r-sm); background: var(--g-l); color: var(--g-d);
+  display:flex; align-items:center; gap:8px; font-size:11px; line-height:1.35;
+}
+.trust-mini{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  margin:10px 16px; padding:11px 12px; border-radius:var(--r);
+  background:#fff; border:.5px solid var(--bdr);
+}
+.trust-score-badge{
+  min-width:56px; height:56px; border-radius:18px; display:flex; flex-direction:column;
+  justify-content:center; align-items:center; background:linear-gradient(145deg,var(--g-d),var(--g)); color:white;
+  box-shadow:0 8px 18px rgba(29,158,117,.18);
+}
+.trust-score-badge strong{font-size:19px;font-family:var(--head);line-height:1;}
+.trust-score-badge span{font-size:9px;opacity:.8;margin-top:2px;}
+.trust-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:.5px solid var(--bdr);font-size:12px;}
+.trust-row:last-child{border-bottom:none;}
+.vision-card{
+  margin:10px 16px; padding:14px; border-radius:var(--r);
+  background:linear-gradient(135deg,#081f1a,#0F6E56 70%,#1D9E75); color:#fff;
+}
+.vision-card h3{font-family:var(--head);font-size:16px;margin-bottom:4px;letter-spacing:-.3px;}
+.vision-card p{font-size:12px;line-height:1.5;color:rgba(255,255,255,.82);}
+.locked-price{
+  display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:999px;
+  background:var(--am-l);color:var(--am);font-size:10px;font-weight:600;
+}
+.high-value-locker{
+  margin:8px 16px 0; padding:10px 12px; border-radius:var(--r-sm);
+  background:var(--b-l); color:var(--b-d); font-size:11px; line-height:1.45; display:flex; gap:8px;
+}
+
+</style>
+</head>
+<body>
+<div class="site-wrap">
+
+<header class="header">
+  <div class="logo">where<em>isit</em></div>
+  <div class="header-pills">
+    <span class="pill p-g">Demo interactiva</span>
+    <span class="pill p-b">Copec Avonni 2026</span>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">whereisit</div>
+    <div class="sidebar-tagline">Tu vecino tiene lo que necesitas.<br><strong style="color:var(--t);">En 3 minutos, no en 24 horas.</strong></div>
+
+    <div class="nav-label">Flujo de usuario</div>
+    <div class="nav-item active" id="nav-onboard" onclick="goTo('onboard');setNav('onboard')">
+      <i class="ti ti-door-enter" aria-hidden="true"></i> Bienvenida
+    </div>
+    <div class="nav-item" id="nav-register" onclick="goTo('register');setNav('register')">
+      <i class="ti ti-user-plus" aria-hidden="true"></i> Registro
+    </div>
+    <div class="nav-item" id="nav-carnet" onclick="goTo('carnet');setNav('carnet')">
+      <i class="ti ti-id" aria-hidden="true"></i> Verificar carnet
+    </div>
+    <div class="nav-item" id="nav-verify" onclick="goTo('verify');setNav('verify')">
+      <i class="ti ti-clock" aria-hidden="true"></i> Validación
+    </div>
+
+    <div class="nav-label">Dentro de la app</div>
+    <div class="nav-item" id="nav-home" onclick="goTo('home');setNav('home')">
+      <i class="ti ti-home" aria-hidden="true"></i> Inicio
+    </div>
+    <div class="nav-item" id="nav-map" onclick="goTo('map');setNav('map')">
+      <i class="ti ti-map" aria-hidden="true"></i> Mapa hiperlocal
+    </div>
+    <div class="nav-item" id="nav-detail" onclick="goTo('detail');setNav('detail')">
+      <i class="ti ti-shopping-cart" aria-hidden="true"></i> Simulación de compra
+    </div>
+    <div class="nav-item" id="nav-security" onclick="goTo('security');setNav('security')">
+      <i class="ti ti-shield-lock" aria-hidden="true"></i> Seguridad y comisión
+    </div>
+    <div class="nav-item" id="nav-privacy" onclick="goTo('privacy');setNav('privacy')">
+      <i class="ti ti-eye-off" aria-hidden="true"></i> ¿Cómo protegemos tu dirección?
+    </div>
+    <div class="nav-item" id="nav-trust" onclick="goTo('trust');setNav('trust')">
+      <i class="ti ti-user-shield" aria-hidden="true"></i> Trust Score
+    </div>
+    <div class="nav-item" id="nav-publish" onclick="goTo('publish');setNav('publish')">
+      <i class="ti ti-plus-circle" aria-hidden="true"></i> Publicar artículo
+    </div>
+    <div class="nav-item" id="nav-profile" onclick="goTo('profile');setNav('profile')">
+      <i class="ti ti-user-circle" aria-hidden="true"></i> Mi perfil
+    </div>
+    <div class="nav-item" id="nav-reviews" onclick="goTo('reviews');setNav('reviews')">
+      <i class="ti ti-star" aria-hidden="true"></i> Reseñas
+    </div>
+    <div class="nav-item" id="nav-sales" onclick="goTo('sales');setNav('sales')">
+      <i class="ti ti-chart-bar" aria-hidden="true"></i> Panel de ventas
+    </div>
+    <div class="nav-item" id="nav-chat" onclick="goTo('chat');setNav('chat')">
+      <i class="ti ti-message-circle" aria-hidden="true"></i> Chat con vecino
+    </div>
+    <div class="nav-item" id="nav-points" onclick="goTo('points');setNav('points')">
+      <i class="ti ti-award" aria-hidden="true"></i> Puntos vecino
+    </div>
+
+    <div class="sidebar-stats">
+      <div class="s-stat"><div class="s-num">3 min</div><div class="s-label">entrega vecinal</div></div>
+      <div class="s-stat"><div class="s-num">$0</div><div class="s-label">costo despacho</div></div>
+      <div class="s-stat"><div class="s-num">100m</div><div class="s-label">radio de acción</div></div>
+      <div class="s-stat"><div class="s-num">24/7</div><div class="s-label">lockers Copec</div></div>
+    </div>
+
+    <div class="blue-card">
+      <i class="ti ti-building-store" style="font-size:20px;flex-shrink:0;" aria-hidden="true"></i>
+      <span>Red Blue Express · +3.200 puntos Copec en Chile. Retiro seguro 24/7 sin revelar tu dirección.</span>
+    </div>
+  </aside>
+
+  <!-- ── PHONE ── -->
+  <div class="phone-area">
+  <div class="phone">
+
+    <div class="status-bar">
+      <span>9:41</span>
+      <span style="display:flex;gap:6px;align-items:center;">
+        <i class="ti ti-wifi" style="font-size:13px;" aria-hidden="true"></i>
+        <i class="ti ti-battery-2" style="font-size:13px;" aria-hidden="true"></i>
+      </span>
+    </div>
+
+    <!-- ────────── ONBOARDING ────────── -->
+    <div class="screen active" id="screen-onboard">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;">
+        <div style="width:80px;height:80px;border-radius:26px;background:var(--g-l);display:flex;align-items:center;justify-content:center;margin-bottom:18px;">
+          <i class="ti ti-map-pin" style="font-size:40px;color:var(--g);" aria-hidden="true"></i>
+        </div>
+        <div class="splash-logo">whereisit</div>
+        <div class="splash-sub">Tu vecino tiene lo que necesitas.<br><strong>En 3 minutos, no en 24 horas.</strong></div>
+        <div class="vision-card" style="margin:0 0 18px 0;text-align:left;width:100%;">
+          <h3>El retail te hace esperar 24h.</h3>
+          <p>Tu vecino te salva en 3 minutos — y sin que nadie sepa dónde vives. Identidad verificada, ubicación protegida, pago seguro.</p>
+        </div>
+        <div style="width:100%;display:flex;flex-direction:column;gap:6px;margin-bottom:24px;text-align:left;">
+          <div class="feat">
+            <div class="feat-icon" style="background:var(--g-l);"><i class="ti ti-walk" style="font-size:20px;color:var(--g);" aria-hidden="true"></i></div>
+            <div><div class="feat-title">Entrega en 3 minutos</div><div class="feat-sub">Sin courier, sin espera</div></div>
+          </div>
+          <div class="feat">
+            <div class="feat-icon" style="background:var(--b-l);"><i class="ti ti-building-store" style="font-size:20px;color:var(--b);" aria-hidden="true"></i></div>
+            <div><div class="feat-title">Locker Copec · Blue Express</div><div class="feat-sub">Retiro seguro 24/7</div></div>
+          </div>
+          <div class="feat">
+            <div class="feat-icon" style="background:var(--am-l);"><i class="ti ti-id-badge" style="font-size:20px;color:var(--am);" aria-hidden="true"></i></div>
+            <div><div class="feat-title">Vecinos verificados</div><div class="feat-sub">Identidad validada + ubicación protegida</div></div>
+          </div>
+          <div class="feat">
+            <div class="feat-icon" style="background:#FBEAF0;"><i class="ti ti-award" style="font-size:20px;color:#993556;" aria-hidden="true"></i></div>
+            <div><div class="feat-title">Sistema de puntos vecino</div><div class="feat-sub">Gana recompensas por vender</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="cta" style="border-top:none;padding-top:0;">
+        <button class="btn-g" onclick="goTo('register');setNav('register')">Crear cuenta gratis</button>
+        <button class="btn-o">Ya tengo cuenta · Iniciar sesión</button>
+      </div>
+    </div>
+
+    <!-- ────────── REGISTRO ────────── -->
+    <div class="screen" id="screen-register">
+      <div class="topbar">
+        <i class="ti ti-arrow-left" style="font-size:20px;cursor:pointer;color:var(--t2);" aria-hidden="true" onclick="goTo('onboard');setNav('onboard')"></i>
+        <div class="topbar-title">Crear cuenta</div>
+      </div>
+      <div class="steps-row" style="margin-top:12px;">
+        <div class="step-dot sd-active">1</div>
+        <div class="step-dot sd-todo" style="opacity:.4;">2</div>
+        <div class="step-dot sd-todo" style="opacity:.4;">3</div>
+        <div class="step-label">Paso 1 de 3 · Datos personales</div>
+      </div>
+      <div class="scroll" style="padding:4px 16px 12px;">
+        <div class="field"><div class="lbl">Nombre completo</div><input class="inp" type="text" placeholder="Javiera Carrizo"></div>
+        <div class="field"><div class="lbl">Correo electrónico</div><input class="inp" type="email" placeholder="javi@gmail.com"></div>
+        <div class="field"><div class="lbl">Número de celular</div><input class="inp" type="tel" placeholder="+56 9 1234 5678"></div>
+        <div class="field"><div class="lbl">Contraseña</div><input class="inp" type="password" placeholder="Mínimo 8 caracteres"></div>
+        <div class="field">
+          <div class="lbl">Edificio o condominio</div>
+          <input class="inp" type="text" placeholder="Ej: Edificio Las Condes, Torre B">
+        </div>
+        <div class="field">
+          <div class="lbl">Piso / Departamento</div>
+          <input class="inp" type="text" placeholder="Ej: Piso 8, Depto 802">
+        </div>
+        <div style="font-size:11px;color:var(--t2);line-height:1.5;margin-top:4px;">
+          Al continuar aceptas los <span style="color:var(--g);cursor:pointer;">Términos de uso</span> y la <span style="color:var(--g);cursor:pointer;">Política de privacidad</span>.
+        </div>
+      </div>
+      <div class="cta">
+        <button class="btn-g" onclick="goTo('carnet');setNav('carnet')">Continuar →</button>
+      </div>
+    </div>
+
+    <!-- ────────── CARNET ────────── -->
+    <div class="screen" id="screen-carnet">
+      <div class="topbar">
+        <i class="ti ti-arrow-left" style="font-size:20px;cursor:pointer;color:var(--t2);" aria-hidden="true" onclick="goTo('register');setNav('register')"></i>
+        <div class="topbar-title">Verificar identidad</div>
+      </div>
+      <div class="steps-row" style="margin-top:12px;">
+        <div class="step-dot sd-done"><i class="ti ti-check" style="font-size:11px;" aria-hidden="true"></i></div>
+        <div class="step-dot sd-active">2</div>
+        <div class="step-dot sd-todo" style="opacity:.4;">3</div>
+        <div class="step-label">Paso 2 de 3 · Carnet de identidad</div>
+      </div>
+      <div class="scroll" style="padding:4px 16px 12px;">
+        <div style="font-size:14px;font-weight:500;color:var(--t);margin-bottom:4px;">¿Por qué pedimos tu carnet?</div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.5;margin-bottom:14px;">Para que todos los vecinos en whereisit sean quienes dicen ser. Tu información nunca se comparte con otros usuarios.</div>
+
+        <div class="upload done" id="up-front" onclick="this.querySelector('.up-text').textContent='Cargada ✓'">
+          <i class="ti ti-id" style="font-size:30px;color:var(--g);margin-bottom:8px;" aria-hidden="true"></i>
+          <div style="font-size:13px;font-weight:500;color:var(--g-d);margin-bottom:3px;">Parte frontal</div>
+          <div class="up-text" style="font-size:12px;color:var(--g-m);">Cargada ✓</div>
+        </div>
+
+        <div class="upload" id="up-back" onclick="this.classList.add('done');this.querySelector('.up-back-txt').textContent='Cargada ✓';this.querySelector('i').style.color='var(--g)'">
+          <i class="ti ti-id" style="font-size:30px;color:var(--t3);margin-bottom:8px;" aria-hidden="true"></i>
+          <div style="font-size:13px;font-weight:500;color:var(--t);margin-bottom:3px;">Parte trasera</div>
+          <div class="up-back-txt" style="font-size:12px;color:var(--t2);">Toca para subir o fotografiar</div>
+        </div>
+
+        <div class="info info-b" style="margin-top:4px;">
+          <i class="ti ti-shield-check" style="font-size:16px;margin-top:1px;flex-shrink:0;" aria-hidden="true"></i>
+          <p>Las imágenes se encriptan y eliminan tras la verificación. Validamos con Registro Civil de Chile.</p>
+        </div>
+      </div>
+      <div class="cta">
+        <button class="btn-g" onclick="goTo('verify');setNav('verify')">
+          <i class="ti ti-camera" style="font-size:15px;vertical-align:-2px;" aria-hidden="true"></i>
+          Enviar para verificación
+        </button>
+      </div>
+    </div>
+
+    <!-- ────────── VERIFICACIÓN ────────── -->
+    <div class="screen" id="screen-verify">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 24px;text-align:center;">
+        <div class="steps-row" style="margin:0 0 24px;width:100%;">
+          <div class="step-dot sd-done"><i class="ti ti-check" style="font-size:11px;" aria-hidden="true"></i></div>
+          <div class="step-dot sd-done"><i class="ti ti-check" style="font-size:11px;" aria-hidden="true"></i></div>
+          <div class="step-dot sd-active">3</div>
+          <div class="step-label">Paso 3 · Validando...</div>
+        </div>
+        <div style="width:64px;height:64px;border-radius:50%;background:var(--am-l);display:flex;align-items:center;justify-content:center;margin-bottom:14px;">
+          <i class="ti ti-clock" style="font-size:32px;color:var(--am);" aria-hidden="true"></i>
+        </div>
+        <div style="font-size:17px;font-weight:500;margin-bottom:8px;">Verificando tu identidad</div>
+        <div style="font-size:13px;color:var(--t2);line-height:1.6;margin-bottom:22px;">Validando tu carnet con Registro Civil de Chile. Menos de 2 minutos.</div>
+        <div style="width:100%;background:var(--bg2);border-radius:var(--r);padding:14px;text-align:left;margin-bottom:20px;">
+          <div style="font-size:12px;font-weight:500;color:var(--t2);margin-bottom:8px;">Estado</div>
+          <div class="row" style="padding:6px 0;border-bottom:none;">
+            <i class="ti ti-circle-check" style="font-size:16px;color:var(--g);" aria-hidden="true"></i>
+            <span style="font-size:13px;">Imagen recibida</span>
+          </div>
+          <div class="row" style="padding:6px 0;border-bottom:none;">
+            <i class="ti ti-circle-check" style="font-size:16px;color:var(--g);" aria-hidden="true"></i>
+            <span style="font-size:13px;">Documento legible</span>
+          </div>
+          <div class="row" style="padding:6px 0;border-bottom:none;" id="verif-row">
+            <i class="ti ti-loader" style="font-size:16px;color:var(--am);" aria-hidden="true"></i>
+            <span style="font-size:13px;color:var(--t2);">Validando con Registro Civil...</span>
+          </div>
+        </div>
+        <button class="btn-g" style="max-width:220px;" onclick="simulateVerif()">Simular verificación exitosa</button>
+      </div>
+    </div>
+
+    <!-- ────────── VERIFIED OK ────────── -->
+    <div class="screen" id="screen-verified">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 24px;text-align:center;">
+        <div style="width:72px;height:72px;border-radius:50%;background:var(--g-l);display:flex;align-items:center;justify-content:center;margin-bottom:14px;">
+          <i class="ti ti-circle-check" style="font-size:36px;color:var(--g);" aria-hidden="true"></i>
+        </div>
+        <div style="font-size:18px;font-weight:500;margin-bottom:8px;">¡Identidad verificada!</div>
+        <div style="font-size:13px;color:var(--t2);line-height:1.6;margin-bottom:20px;">Bienvenida a whereisit, Javiera. Ya eres parte de la comunidad verificada de tu edificio.</div>
+        <div style="width:100%;background:var(--g-l);border-radius:var(--r);padding:14px;display:flex;gap:12px;align-items:center;text-align:left;margin-bottom:16px;">
+          <div class="av av-jc" style="width:52px;height:52px;font-size:16px;">JC</div>
+          <div>
+            <div style="font-size:14px;font-weight:500;color:var(--g-d);">Javiera Carrizo</div>
+            <div class="verified-badge" style="margin-top:4px;">
+              <i class="ti ti-shield-check" style="font-size:13px;" aria-hidden="true"></i> Vecina verificada
+            </div>
+            <div style="font-size:11px;color:var(--g-m);margin-top:3px;">Edificio Las Condes · Piso 8</div>
+          </div>
+        </div>
+        <button class="btn-g" style="max-width:220px;" onclick="goTo('home');setNav('home')">Ir al inicio →</button>
+      </div>
+    </div>
+
+    <!-- ────────── HOME ────────── -->
+    <div class="screen" id="screen-home">
+      <div class="topbar">
+        <div>
+          <div style="font-size:11px;color:var(--t2);">Torre B · Piso 8</div>
+          <div style="font-size:15px;font-weight:500;display:flex;align-items:center;gap:4px;">
+            <i class="ti ti-map-pin" style="font-size:14px;color:var(--g);" aria-hidden="true"></i> Edificio Las Condes
+          </div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:10px;align-items:center;">
+          <div style="position:relative;cursor:pointer;" onclick="goTo('chat');setNav('chat')">
+            <i class="ti ti-message-circle" style="font-size:22px;color:var(--t2);" aria-hidden="true"></i>
+            <div style="position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--g);border:1.5px solid var(--bg);"></div>
+          </div>
+          <div class="av av-jc" style="width:30px;height:30px;font-size:11px;cursor:pointer;" onclick="goTo('profile');setNav('profile')">JC</div>
+        </div>
+      </div>
+
+      <div style="margin:10px 16px 6px;background:var(--bg2);border:0.5px solid var(--bdr);border-radius:var(--r);padding:9px 14px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--t2);" onclick="goTo('map');setNav('map')">
+        <i class="ti ti-search" style="font-size:16px;" aria-hidden="true"></i> Buscar en tu edificio...
+        <span class="pill p-g" style="margin-left:auto;font-size:10px;">100m</span>
+      </div>
+      <div class="secure-strip">
+        <i class="ti ti-shield-lock" style="font-size:17px;flex-shrink:0;" aria-hidden="true"></i>
+        <span>Privacidad por capas: la app muestra cercanía útil sin exponer direcciones exactas.</span>
+      </div>
+
+      <div style="padding:6px 16px;display:flex;gap:6px;flex-wrap:wrap;">
+        <span class="pill p-g" style="cursor:pointer;"><i class="ti ti-tool" aria-hidden="true"></i> Herramientas</span>
+        <span class="pill p-b" style="cursor:pointer;"><i class="ti ti-device-mobile" aria-hidden="true"></i> Electrónica</span>
+        <span class="pill p-am" style="cursor:pointer;"><i class="ti ti-shirt" aria-hidden="true"></i> Ropa</span>
+        <span class="pill p-gr" style="cursor:pointer;"><i class="ti ti-home" aria-hidden="true"></i> Hogar</span>
+      </div>
+
+      <div class="sec-label">Cerca de ti ahora</div>
+      <div class="scroll">
+        <div class="item-card" onclick="goTo('map');setNav('map')">
+          <div class="item-img">🌂</div>
+          <div style="flex:1;">
+            <div class="item-name">Paraguas negro</div>
+            <div class="item-sub">Poco uso · Camila R. · Piso 12</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div class="item-price">$2.000</div>
+              <div style="font-size:11px;color:var(--t3);display:flex;align-items:center;gap:3px;"><i class="ti ti-walk" style="font-size:12px;" aria-hidden="true"></i> 40m · 1 min</div>
+            </div>
+          </div>
+        </div>
+        <div class="item-card" onclick="goTo('map');setNav('map')">
+          <div class="item-img">🔧</div>
+          <div style="flex:1;">
+            <div class="item-name">Destornillador set</div>
+            <div class="item-sub">Sin uso · Miguel K. · Piso 5</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div class="item-price">$3.500</div>
+              <div style="font-size:11px;color:var(--t3);display:flex;align-items:center;gap:3px;"><i class="ti ti-walk" style="font-size:12px;" aria-hidden="true"></i> 60m · 2 min</div>
+            </div>
+          </div>
+        </div>
+        <div class="item-card" onclick="goTo('map');setNav('map')">
+          <div class="item-img">👟</div>
+          <div style="flex:1;">
+            <div class="item-name">Zapatillas talla 40</div>
+            <div class="item-sub">Buen estado · Usuario verificado · zona cercana</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div class="item-price">$5.000</div>
+              <div style="font-size:11px;color:var(--t3);display:flex;align-items:center;gap:3px;"><i class="ti ti-walk" style="font-size:12px;" aria-hidden="true"></i> 90m · 3 min</div>
+            </div>
+          </div>
+        </div>
+        <div class="item-card">
+          <div class="item-img">🔌</div>
+          <div style="flex:1;">
+            <div class="item-name">Cargador MacBook</div>
+            <div class="item-sub">Buen estado · Usuario verificado · zona cercana</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div class="item-price">$4.000</div>
+              <div style="font-size:11px;color:var(--t3);display:flex;align-items:center;gap:3px;"><i class="ti ti-walk" style="font-size:12px;" aria-hidden="true"></i> 75m · 2 min</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin:8px 16px;padding:12px;background:var(--g-l);border-radius:var(--r);display:flex;gap:10px;align-items:center;cursor:pointer;" onclick="goTo('points');setNav('points')">
+          <i class="ti ti-award" style="font-size:24px;color:var(--g);" aria-hidden="true"></i>
+          <div>
+            <div style="font-size:12px;font-weight:500;color:var(--g-d);">Tienes 340 puntos vecino</div>
+            <div style="font-size:11px;color:var(--g-m);">¡A 160 puntos de tu próxima recompensa! →</div>
+          </div>
+        </div>
+
+        <div style="margin:0 16px 12px;padding:12px;background:var(--b-l);border-radius:var(--r);display:flex;gap:10px;align-items:center;">
+          <i class="ti ti-package" style="font-size:22px;color:var(--b);" aria-hidden="true"></i>
+          <div>
+            <div style="font-size:12px;font-weight:500;color:var(--b-d);">Tienes 3 artículos sin publicar</div>
+            <div style="font-size:11px;color:var(--b);cursor:pointer;" onclick="goTo('publish');setNav('publish')">Publicar y ganar puntos →</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab-item active"><i class="ti ti-home" style="font-size:20px;" aria-hidden="true"></i>Inicio</div>
+        <div class="tab-item" onclick="goTo('map');setNav('map')"><i class="ti ti-map" style="font-size:20px;" aria-hidden="true"></i>Mapa</div>
+        <div class="tab-item" onclick="goTo('publish');setNav('publish')"><i class="ti ti-plus-circle" style="font-size:20px;" aria-hidden="true"></i>Publicar</div>
+        <div class="tab-item" onclick="goTo('sales');setNav('sales')"><i class="ti ti-chart-bar" style="font-size:20px;" aria-hidden="true"></i>Ventas</div>
+        <div class="tab-item" onclick="goTo('profile');setNav('profile')"><i class="ti ti-user" style="font-size:20px;" aria-hidden="true"></i>Perfil</div>
+      </div>
+    </div>
+
+    <!-- ────────── MAPA ────────── -->
+    <div class="screen" id="screen-map">
+      <div class="topbar">
+        <i class="ti ti-arrow-left" style="font-size:20px;cursor:pointer;color:var(--t2);" aria-hidden="true" onclick="goTo('home');setNav('home')"></i>
+        <div class="topbar-title">Mapa · 6 artículos</div>
+        <i class="ti ti-adjustments-horizontal" style="font-size:20px;color:var(--t2);cursor:pointer;" aria-hidden="true"></i>
+      </div>
+      <div style="padding:6px 16px 8px;display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0;">
+        <span class="pill p-g" style="cursor:pointer;">Todos (6)</span>
+        <span class="pill p-b" style="cursor:pointer;"><i class="ti ti-shield-lock" aria-hidden="true"></i> Ubicación protegida</span>
+        <span class="pill p-gr" style="cursor:pointer;"><i class="ti ti-tool" aria-hidden="true"></i> Herram.</span>
+        <span class="pill p-gr" style="cursor:pointer;"><i class="ti ti-device-mobile" aria-hidden="true"></i> Electró.</span>
+        <span class="pill p-gr" style="cursor:pointer;"><i class="ti ti-shirt" aria-hidden="true"></i> Ropa</span>
+      </div>
+      <div class="map-area">
+        <svg style="position:absolute;inset:0;" viewBox="0 0 340 260" xmlns="http://www.w3.org/2000/svg">
+          <rect width="340" height="260" fill="#dde8dd"/>
+          <rect x="0" y="42" width="340" height="30" fill="#c8d8c4"/>
+          <rect x="0" y="138" width="340" height="24" fill="#c8d8c4"/>
+          <rect x="0" y="210" width="340" height="26" fill="#c8d8c4"/>
+          <rect x="52" y="0" width="24" height="260" fill="#c8d8c4"/>
+          <rect x="205" y="0" width="22" height="260" fill="#c8d8c4"/>
+          <rect x="6" y="80" width="36" height="48" rx="4" fill="#b8ccb8"/>
+          <rect x="84" y="80" width="110" height="48" rx="4" fill="#b8ccb8"/>
+          <rect x="234" y="80" width="100" height="48" rx="4" fill="#b8ccb8"/>
+          <rect x="6" y="170" width="36" height="36" rx="4" fill="#b8ccb8"/>
+          <rect x="84" y="170" width="110" height="36" rx="4" fill="#b8ccb8"/>
+          <rect x="234" y="170" width="100" height="36" rx="4" fill="#b8ccb8"/>
+          <text x="170" y="60" text-anchor="middle" font-size="9" fill="#8a9e8a" font-family="sans-serif">Av. Las Condes</text>
+          <text x="170" y="152" text-anchor="middle" font-size="9" fill="#8a9e8a" font-family="sans-serif">Pasaje Los Pinos</text>
+        </svg>
+        <div class="approx-zone" style="left:42%;top:63%;"></div>
+        <div class="approx-zone" style="left:68%;top:57%;"></div>
+        <div class="uring" style="width:90px;height:90px;left:50%;top:50%;"></div>
+        <div class="uring" style="width:160px;height:160px;left:50%;top:50%;border-width:1px;border-color:rgba(29,158,117,.13);"></div>
+        <div class="user-pos" style="left:50%;top:50%;"><div class="udot"></div></div>
+        <div class="map-pin" style="left:33%;top:36%;" onclick="selPin(1)"><div class="pin-bub sel" id="pb1">$2.000</div><div class="pin-tail"></div><div class="pin-dot"></div></div>
+        <div class="map-pin" style="left:60%;top:42%;" onclick="selPin(2)"><div class="pin-bub" id="pb2">$3.500</div><div class="pin-tail"></div><div class="pin-dot"></div></div>
+        <div class="map-pin" style="left:54%;top:26%;" onclick="selPin(3)"><div class="pin-bub" id="pb3">$4.000</div><div class="pin-tail"></div><div class="pin-dot"></div></div>
+        <div class="map-pin" style="left:42%;top:63%;" onclick="selPin(4)"><div class="pin-bub" id="pb4">$8.000</div><div class="pin-tail"></div><div class="pin-dot"></div></div>
+        <div class="map-pin" style="left:68%;top:57%;" onclick="selPin(5)"><div class="pin-bub" id="pb5">$5.000</div><div class="pin-tail"></div><div class="pin-dot"></div></div>
+        <div class="map-pin" style="left:74%;top:31%;" onclick="selPin(6)">
+          <div class="pin-bub lk" id="pb6" style="border-color:var(--b);"><i class="ti ti-building-store" style="font-size:10px;" aria-hidden="true"></i> Copec</div>
+          <div class="pin-tail" style="background:var(--b);"></div>
+          <div class="pin-dot" style="background:var(--b);"></div>
+        </div>
+        <div style="position:absolute;top:8px;left:10px;background:var(--bg);border:0.5px solid var(--bdr);border-radius:var(--r-sm);padding:4px 8px;font-size:11px;font-weight:500;display:flex;align-items:center;gap:5px;color:var(--g-d);">
+          <div style="width:8px;height:8px;border-radius:50%;border:2px solid rgba(29,158,117,.35);"></div> Radio 100m
+        </div>
+        <div class="privacy-card"><strong style="color:var(--b-d);">Privacidad:</strong><br>el piso solo aparece si ambos viven en el mismo edificio.</div>
+        <div class="map-card">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="item-img" id="mc-em" style="width:44px;height:44px;font-size:22px;">🌂</div>
+            <div style="flex:1;">
+              <div id="mc-name" style="font-size:13px;font-weight:500;color:var(--t);">Paraguas negro</div>
+              <div id="mc-seller" style="font-size:12px;color:var(--t2);">Camila R. · Piso 12</div>
+              <div id="mc-privacy" style="margin:3px 0;"><span class="privacy-badge"><i class="ti ti-building" aria-hidden="true"></i> mismo edificio</span></div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <span id="mc-price" style="font-size:13px;font-weight:500;color:var(--g);">$2.000</span>
+                <span id="mc-dist" style="font-size:11px;color:var(--t2);display:flex;align-items:center;gap:2px;"><i class="ti ti-walk" style="font-size:12px;" aria-hidden="true"></i> 40m · 1 min</span>
+              </div>
+            </div>
+            <div style="font-size:11px;color:var(--t2);">★ 4.9</div>
+          </div>
+          <button class="btn-g" style="margin-top:10px;font-size:13px;padding:10px;" onclick="openDetailFromMap()">Ver detalle y comprar</button>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-item" onclick="goTo('home');setNav('home')"><i class="ti ti-home" style="font-size:20px;" aria-hidden="true"></i>Inicio</div>
+        <div class="tab-item active"><i class="ti ti-map" style="font-size:20px;" aria-hidden="true"></i>Mapa</div>
+        <div class="tab-item" onclick="goTo('publish');setNav('publish')"><i class="ti ti-plus-circle" style="font-size:20px;" aria-hidden="true"></i>Publicar</div>
+        <div class="tab-item" onclick="goTo('sales');setNav('sales')"><i class="ti ti-chart-bar" style="font-size:20px;" aria-hidden="true"></i>Ventas</div>
+        <div class="tab-item" onclick="goTo('profile');setNav('profile')"><i class="ti ti-user" style="font-size:20px;" aria-hidden="true"></i>Perfil</div>
+      </div>
+    </div>
+
+    <!-- S3: DETAIL + MODE -->
+    <div class="screen" id="screen-detail">
+      <div class="topbar">
+        <i class="ti ti-arrow-left" style="font-size:20px;cursor:pointer;color:var(--text2);" onclick="goTo('map');setNav('map')"></i>
+        <div class="topbar-title">Detalle</div>
+        <i class="ti ti-heart" style="font-size:20px;color:var(--text2);"></i>
+      </div>
+
+      <div id="detail-emoji" style="height:130px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:56px;border-bottom:0.5px solid var(--border);">🌂</div>
+
+      <div style="padding:14px 16px 10px;border-bottom:0.5px solid var(--border);">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div id="detail-name" style="font-size:17px;font-weight:500;color:var(--text);margin-bottom:4px;">Paraguas negro</div>
+            <div id="detail-sub" style="font-size:12px;color:var(--text2);">Poco uso · publicado hace 2h</div>
+          </div>
+          <div id="detail-price" style="font-size:24px;font-weight:600;color:var(--text);">$2.000</div>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:6px;">
+          <span id="detail-distance" class="pill pill-green"><i class="ti ti-walk"></i> 40 m · 1 min</span>
+          <span class="pill pill-green"><i class="ti ti-shield-check"></i> Verificado</span>
+        </div>
+      </div>
+
+      <div class="trust-mini" onclick="goTo('trust');setNav('trust')" style="cursor:pointer;">
+        <div>
+          <div id="detail-seller-line" style="font-size:13px;font-weight:600;color:var(--t);display:flex;gap:5px;align-items:center;">Horacio S. <span class="privacy-badge"><i class="ti ti-shield-check"></i> verificado</span></div>
+          <div id="detail-trust-sub" style="font-size:11px;color:var(--t2);margin-top:3px;">48 entregas · 0 reclamos · respuesta promedio 2 min</div>
+        </div>
+        <div class="trust-score-badge"><strong>96</strong><span>TRUST</span></div>
+      </div>
+      <div class="secure-strip">
+        <i class="ti ti-lock-dollar" style="font-size:17px;flex-shrink:0;"></i>
+        <span id="detail-price-lock"><strong>Precio protegido:</strong> $2.000 queda bloqueado. No se permite pedir dinero extra en persona.</span>
+      </div>
+
+      <div class="divider">elige cómo recibir</div>
+
+      <div class="mode-card selected" id="mc-vecinal" onclick="selMode('vecinal')">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <i class="ti ti-walk" style="font-size:20px;color:var(--green);"></i>
+          <div class="mode-title">Entrega vecinal</div>
+          <span class="pill pill-green" style="margin-left:auto;font-size:10px;padding:2px 8px;">Gratis</span>
+        </div>
+        <div id="vecinal-sub" class="mode-sub">Horacio te trae el artículo en 3–5 min desde el Piso 12.</div>
+      </div>
+
+      <div class="mode-card" id="mc-locker" onclick="selMode('locker')">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <i class="ti ti-building-store" style="font-size:20px;color:var(--blue);"></i>
+          <div class="mode-title">Locker Copec · Blue Express</div>
+          <span class="pill pill-blue" style="margin-left:auto;font-size:10px;padding:2px 8px;">Seguro</span>
+        </div>
+        <div class="mode-sub">Deposita en un locker Copec. Retiras con QR/PIN, 24/7.</div>
+      </div>
+      <div class="high-value-locker" id="high-value-rule">
+        <i class="ti ti-lock" style="font-size:16px;flex-shrink:0;"></i>
+        <span id="high-value-rule-text"><strong>Regla de seguridad:</strong> productos de alto valor se envían solo por locker para evitar encuentros riesgosos y proteger el pago.</span>
+      </div>
+
+      <div class="cta">
+        <button class="btn-green" onclick="goTo('locker');setNav('map')">Continuar con locker Copec</button>
+        <button class="btn-outline" id="btn-vecinal-confirm" onclick="goTo('success');setNav('map')">Entrega vecinal · confirmar</button>
+        <button class="btn-b" onclick="goTo('security');setNav('security')">Ver capa de seguridad y precio fijo</button>
+      </div>
+    </div>
+
+    <!-- S3B: SEGURIDAD Y COMISIÓN -->
+    <div class="screen" id="screen-security">
+      <div class="topbar">
+        <i class="ti ti-arrow-left" style="font-size:20px;cursor:pointer;color:var(--text2);" onclick="goTo('detail');setNav('detail')"></i>
+        <div class="topbar-title">Seguridad y comisión</div>
+        <i class="ti ti-shield-lock" style="font-size:20px;color:var(--green);"></i>
+      </div>
+
+      <div class="scroll" style="padding:12px 16px;">
+        <div class="info-box info-green" style="margin:0 0 10px 0;">
+          <i class="ti ti-lock-dollar" style="font-size:18px;color:var(--green-dark);margin-top:1px;flex-shrink:0;"></i>
+          <p><strong>Precio publicado = precio final.</strong><br>Cuando el comprador paga, whereisit bloquea el precio y retiene el pago. El vendedor no puede pedir un monto extra fuera de la app.</p>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+          <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px;">
+            <i class="ti ti-cash-off" style="font-size:22px;color:var(--red-dark);"></i>
+            <div style="font-size:13px;font-weight:600;color:var(--text);margin-top:6px;">Sin efectivo</div>
+            <div style="font-size:11px;color:var(--text2);line-height:1.45;margin-top:3px;">Evita cobros extra, fraudes y evasión de comisión.</div>
+          </div>
+          <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px;">
+            <i class="ti ti-message-lock" style="font-size:22px;color:var(--blue);"></i>
+            <div style="font-size:13px;font-weight:600;color:var(--text);margin-top:6px;">Chat protegido</div>
+            <div style="font-size:11px;color:var(--text2);line-height:1.45;margin-top:3px;">Bloquea teléfonos, links y frases tipo “háblame por fuera”.</div>
+          </div>
+          <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px;">
+            <i class="ti ti-alert-triangle" style="font-size:22px;color:var(--amber);"></i>
+            <div style="font-size:13px;font-weight:600;color:var(--text);margin-top:6px;">Precio sospechoso</div>
+            <div style="font-size:11px;color:var(--text2);line-height:1.45;margin-top:3px;">Detecta publicaciones muy baratas para negociar más caro en persona.</div>
+          </div>
+          <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px;">
+            <i class="ti ti-user-shield" style="font-size:22px;color:var(--green);"></i>
+            <div style="font-size:13px;font-weight:600;color:var(--text);margin-top:6px;">Trust Score</div>
+            <div style="font-size:11px;color:var(--text2);line-height:1.45;margin-top:3px;">Baja reputación si cancela, cambia precio o intenta sacar la venta.</div>
+          </div>
+        </div>
+
+        <div style="background:#fff;border:0.5px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:10px;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+            <i class="ti ti-percentage" style="font-size:17px;color:var(--green);"></i> Comisión simple y baja
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:0.5px solid var(--border);"><span>Ventas menores a $3.000</span><strong style="color:var(--green);">$0</strong></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:0.5px solid var(--border);"><span>$3.000 a $10.000</span><strong>5%</strong></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:0.5px solid var(--border);"><span>Sobre $10.000</span><strong>8%</strong></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;"><span>Locker Copec</span><strong>fee fijo bajo</strong></div>
+        </div>
+
+        <div class="info-box info-amber" style="margin:0 0 10px 0;">
+          <i class="ti ti-scale" style="font-size:18px;color:var(--amber);margin-top:1px;flex-shrink:0;"></i>
+          <p><strong>Regla anti-desintermediación:</strong><br>si el vendedor pide más dinero en persona o intenta cerrar fuera de whereisit, el comprador puede reportarlo. La orden se cancela, el pago vuelve al comprador y el vendedor pierde reputación.</p>
+        </div>
+
+        <div style="background:var(--blue-light);border-radius:var(--radius);padding:12px;">
+          <div style="font-size:13px;font-weight:600;color:var(--blue-dark);margin-bottom:4px;">Mensaje dentro de la app</div>
+          <div style="font-size:12px;color:var(--blue-dark);line-height:1.5;">“Nunca pagues fuera de whereisit. Solo las compras pagadas en la app tienen precio bloqueado, reembolso, reputación y retiro seguro.”</div>
+        </div>
+      </div>
+
+      <div class="cta">
+        <button class="btn-green" onclick="goTo('detail');setNav('detail')">Volver a la compra</button>
+      </div>
+    </div>
+
+    <!-- S3C: TRUST SCORE -->
+    <div class="screen" id="screen-trust">
+      <div class="topbar">
+        <i class="ti ti-arrow-left" style="font-size:20px;cursor:pointer;color:var(--text2);" onclick="goTo('detail');setNav('detail')"></i>
+        <div class="topbar-title">Trust Score</div>
+        <i class="ti ti-user-shield" style="font-size:20px;color:var(--green);"></i>
+      </div>
+      <div class="scroll" style="padding:14px 16px;">
+        <div style="display:flex;gap:12px;align-items:center;background:#fff;border:.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px;">
+          <div class="av av-cr" style="width:54px;height:54px;font-size:16px;">HS</div>
+          <div style="flex:1;">
+            <div style="font-size:15px;font-weight:600;color:var(--text);">Horacio Sanchez</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:2px;">Vecino verificado · Edificio Las Condes</div>
+            <div style="margin-top:5px;"><span class="privacy-badge"><i class="ti ti-building"></i> mismo edificio</span></div>
+          </div>
+          <div class="trust-score-badge"><strong>96</strong><span>TRUST</span></div>
+        </div>
+
+        <div style="background:#fff;border:.5px solid var(--border);border-radius:var(--radius);padding:0 12px;margin-bottom:12px;">
+          <div class="trust-row"><span><i class="ti ti-shield-check" style="color:var(--green);"></i> Identidad validada</span><strong>Completa</strong></div>
+          <div class="trust-row"><span><i class="ti ti-package" style="color:var(--green);"></i> Entregas exitosas</span><strong>48</strong></div>
+          <div class="trust-row"><span><i class="ti ti-alert-circle" style="color:var(--green);"></i> Reclamos abiertos</span><strong>0</strong></div>
+          <div class="trust-row"><span><i class="ti ti-clock" style="color:var(--green);"></i> Tiempo promedio respuesta</span><strong>2 min</strong></div>
+          <div class="trust-row"><span><i class="ti ti-star" style="color:#EF9F27;"></i> Evaluación promedio</span><strong>4.9/5</strong></div>
+        </div>
+
+        <div class="info-box info-green" style="margin:0 0 10px 0;">
+          <i class="ti ti-brain" style="font-size:18px;color:var(--green-dark);margin-top:1px;flex-shrink:0;"></i>
+          <p><strong>Trust Score predictivo:</strong><br>combina verificación, historial, cambios de precio, cancelaciones, reclamos y rapidez de entrega. Si el usuario intenta cerrar fuera de la app, su score baja.</p>
+        </div>
+
+        <div style="background:var(--blue-light);border-radius:var(--radius);padding:12px;">
+          <div style="font-size:13px;font-weight:600;color:var(--blue-dark);margin-bottom:4px;">Por qué esto importa</div>
+          <div style="font-size:12px;color:var(--blue-dark);line-height:1.5;">whereisit no solo muestra productos cercanos: ordena la confianza. El comprador sabe con quién puede comprar, qué modalidad usar y cuándo conviene exigir locker.</div>
+        </div>
+      </div>
+      <div class="cta">
+        <button class="btn-green" onclick="goTo('detail');setNav('detail')">Volver al detalle</button>
+      </div>
+    </div>
+
+    <!-- S4: LOCKER SELECT -->
+    <div class="screen" id="screen-locker">
+      <div class="topbar">
+        <i class="ti ti-arrow-left" style="font-size:20px;cursor:pointer;color:var(--text2);" onclick="goTo('detail');setNav('map')"></i>
+        <div class="topbar-title">Selecciona un locker</div>
+      </div>
+      <div style="padding:6px 16px 8px;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:5px;">
+        <i class="ti ti-map-pin" style="font-size:13px;color:var(--green);"></i>
+        Lockers Copec · Blue Express cerca de ti
+      </div>
+
+      <div class="locker-row sel" id="lk1" onclick="selLocker('lk1')">
+        <div class="copec-dot"><i class="ti ti-building-store" style="font-size:18px;color:var(--blue);"></i></div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:500;color:var(--text);">Copec Las Condes</div>
+          <div style="font-size:11px;color:var(--text2);">Av. Apoquindo 3500 · 8 casilleros libres</div>
+          <div style="display:flex;gap:8px;margin-top:3px;">
+            <span class="open24">24/7</span>
+            <span style="font-size:11px;color:var(--green);display:flex;align-items:center;gap:3px;"><i class="ti ti-walk" style="font-size:11px;"></i> 350 m</span>
+          </div>
+        </div>
+        <i class="ti ti-circle-check" style="font-size:18px;color:var(--green);" id="lk1-icon"></i>
+      </div>
+      <div class="locker-row" id="lk2" onclick="selLocker('lk2')">
+        <div class="copec-dot"><i class="ti ti-building-store" style="font-size:18px;color:var(--blue);"></i></div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:500;color:var(--text);">Copec Manquehue</div>
+          <div style="font-size:11px;color:var(--text2);">Av. Manquehue Norte 1200 · 3 libres</div>
+          <div style="display:flex;gap:8px;margin-top:3px;">
+            <span class="open24">24/7</span>
+            <span style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:3px;"><i class="ti ti-walk" style="font-size:11px;"></i> 680 m</span>
+          </div>
+        </div>
+        <i class="ti ti-circle" style="font-size:18px;color:var(--text3);" id="lk2-icon"></i>
+      </div>
+      <div class="locker-row" id="lk3" onclick="selLocker('lk3')">
+        <div class="copec-dot"><i class="ti ti-building-store" style="font-size:18px;color:var(--blue);"></i></div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:500;color:var(--text);">Copec Vitacura</div>
+          <div style="font-size:11px;color:var(--text2);">Av. Vitacura 2800 · 12 libres</div>
+          <div style="display:flex;gap:8px;margin-top:3px;">
+            <span class="open24">24/7</span>
+            <span style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:3px;"><i class="ti ti-walk" style="font-size:11px;"></i> 1.1 km</span>
+          </div>
+        </div>
+        <i class="ti ti-circle" style="font-size:18px;color:var(--text3);" id="lk3-icon"></i>
+      </div>
+
+      <div class="info-box info-amber">
+        <i class="ti ti-lock" style="font-size:16px;color:var(--amber);margin-top:1px;flex-shrink:0;"></i>
+        <p>El pago de $2.000 queda retenido por whereisit. Se libera al vendedor solo cuando confirmes el retiro.</p>
+      </div>
+
+      <div class="cta">
+        <button class="btn-green" onclick="goTo('steps');setNav('map')">Confirmar locker seleccionado</button>
+      </div>
+    </div>
+
+    <!-- S5: SELLER STEPS -->
+    <div class="screen" id="screen-steps">
+      <div class="topbar">
+        <i class="ti ti-arrow-left" style="font-size:20px;cursor:pointer;color:var(--text2);" onclick="goTo('locker');setNav('map')"></i>
+        <div class="topbar-title">Instrucciones al vendedor</div>
+      </div>
+      <div style="padding:8px 16px 4px;font-size:12px;color:var(--text2);">Horacio recibió notificación con estas instrucciones:</div>
+
+      <div class="step-row">
+        <div class="step-num">1</div>
+        <div><div class="step-title">Empaca el artículo</div><div class="step-sub">Sin embalaje especial. Cualquier bolsa sirve.</div></div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">2</div>
+        <div><div class="step-title">Ve al locker Copec Las Condes</div><div class="step-sub">Av. Apoquindo 3500 · disponible 24/7 · a 350 m.</div></div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">3</div>
+        <div><div class="step-title">Deposita con código de orden</div><div class="step-sub">Ingresa el código <span style="font-family:var(--mono);background:var(--bg2);padding:1px 5px;border-radius:4px;font-size:12px;">MV-48291</span> en el panel.</div></div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">4</div>
+        <div><div class="step-title">El casillero se asigna automático</div><div class="step-sub">Deposita y cierra la puerta. Confirmación inmediata.</div></div>
+      </div>
+      <div class="step-row" style="border-bottom:none;">
+        <div class="step-num" style="background:var(--blue);">5</div>
+        <div><div class="step-title">Comprador recibe QR + PIN</div><div class="step-sub">whereisit notifica al comprador al instante.</div></div>
+      </div>
+
+      <div class="info-box info-green">
+        <i class="ti ti-clock" style="font-size:16px;color:var(--green-dark);margin-top:1px;flex-shrink:0;"></i>
+        <p>Plazo máximo para depositar: <strong>4 horas</strong>. Si no deposita, el pago se devuelve automáticamente.</p>
+      </div>
+
+      <div class="cta">
+        <button class="btn-green" onclick="goTo('qr');setNav('map')">Ver mi código de retiro</button>
+      </div>
+    </div>
+
+    <!-- S6: QR -->
+    <div class="screen" id="screen-qr">
+      <div class="topbar">
+        <i class="ti ti-arrow-left" style="font-size:20px;cursor:pointer;color:var(--text2);" onclick="goTo('steps');setNav('map')"></i>
+        <div class="topbar-title">Tu código de retiro</div>
+      </div>
+
+      <div style="padding:16px;text-align:center;border-bottom:0.5px solid var(--border);">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Escanea en el locker o ingresa el PIN</div>
+        <div class="qr-box">
+          <svg viewBox="0 0 80 80" width="76" height="76">
+            <rect x="4" y="4" width="30" height="30" rx="2" fill="none" stroke="#1a1a18" stroke-width="3"/>
+            <rect x="10" y="10" width="18" height="18" rx="1" fill="#1a1a18"/>
+            <rect x="46" y="4" width="30" height="30" rx="2" fill="none" stroke="#1a1a18" stroke-width="3"/>
+            <rect x="52" y="10" width="18" height="18" rx="1" fill="#1a1a18"/>
+            <rect x="4" y="46" width="30" height="30" rx="2" fill="none" stroke="#1a1a18" stroke-width="3"/>
+            <rect x="10" y="52" width="18" height="18" rx="1" fill="#1a1a18"/>
+            <rect x="46" y="46" width="8" height="8" rx="1" fill="#1a1a18"/>
+            <rect x="58" y="46" width="8" height="8" rx="1" fill="#1a1a18"/>
+            <rect x="46" y="58" width="8" height="8" rx="1" fill="#1a1a18"/>
+            <rect x="58" y="58" width="18" height="8" rx="1" fill="#1a1a18"/>
+            <rect x="68" y="46" width="8" height="8" rx="1" fill="#1a1a18"/>
+          </svg>
+        </div>
+        <div style="font-size:24px;font-weight:600;color:var(--text);letter-spacing:0.12em;font-family:var(--mono);">7 4 2 – 9 1</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:4px;">PIN de 6 dígitos · válido 5 días hábiles</div>
+      </div>
+
+      <div style="padding:12px 16px;">
+        <div style="background:var(--bg2);border-radius:var(--radius);padding:12px;">
+          <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:8px;">Resumen de compra</div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;color:var(--text2);"><span>Artículo</span><span style="color:var(--text);">Paraguas negro</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;color:var(--text2);"><span>Vendedor</span><span style="color:var(--text);">Horacio R. · Piso 12</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;color:var(--text2);"><span>Locker</span><span style="color:var(--text);">Copec Las Condes</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0 0;color:var(--text2);border-top:0.5px solid var(--border);margin-top:4px;"><span>Total pagado</span><span style="font-weight:600;color:var(--green);">$2.000</span></div>
+        </div>
+      </div>
+
+      <div class="info-box info-green">
+        <i class="ti ti-shield-check" style="font-size:16px;color:var(--green-dark);margin-top:1px;flex-shrink:0;"></i>
+        <p>Tu pago está retenido. Se libera al vendedor solo cuando escanees el QR y confirmes el retiro.</p>
+      </div>
+
+      <div class="cta">
+        <button class="btn-green" onclick="goTo('success');setNav('map')">
+          <i class="ti ti-qrcode" style="font-size:15px;vertical-align:-2px;"></i>
+          Confirmar retiro y liberar pago
+        </button>
+      </div>
+    </div>
+
+    <!-- S7: SUCCESS -->
+    <div class="screen" id="screen-success">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 20px;text-align:center;">
+        <div class="success-circle">
+          <i class="ti ti-circle-check" style="font-size:32px;color:var(--green);"></i>
+        </div>
+        <div style="font-size:18px;font-weight:600;color:var(--text);margin-bottom:8px;">¡Retiro confirmado!</div>
+        <div style="font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:20px;">El pago fue liberado a Horacio. Transacción completada con éxito.</div>
+
+        <div style="width:100%;background:var(--bg2);border-radius:var(--radius);padding:16px;margin-bottom:20px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <div style="text-align:center;flex:1;border-right:0.5px solid var(--border);">
+              <div style="font-size:20px;font-weight:600;color:var(--green);">$0</div>
+              <div style="font-size:11px;color:var(--text2);">despacho</div>
+            </div>
+            <div style="text-align:center;flex:1;border-right:0.5px solid var(--border);">
+              <div style="font-size:20px;font-weight:600;color:var(--green);">100%</div>
+              <div style="font-size:11px;color:var(--text2);">seguro</div>
+            </div>
+            <div style="text-align:center;flex:1;">
+              <div style="font-size:20px;font-weight:600;color:var(--green);">4.9★</div>
+              <div style="font-size:11px;color:var(--text2);">reputación</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="width:100%;background:var(--green-light);border-radius:var(--radius);padding:12px;margin-bottom:16px;text-align:left;display:flex;gap:10px;align-items:center;">
+          <div class="av av-cr">CR</div>
+          <div>
+            <div style="font-size:13px;font-weight:500;color:var(--green-dark);">Califica a Horacio Rojas</div>
+            <div style="font-size:11px;color:var(--green-mid);">Tu reseña fortalece la comunidad whereisit</div>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:2px;">
+            <span style="color:#EF9F27;font-size:18px;cursor:pointer;">★</span>
+            <span style="color:#EF9F27;font-size:18px;cursor:pointer;">★</span>
+            <span style="color:#EF9F27;font-size:18px;cursor:pointer;">★</span>
+            <span style="color:#EF9F27;font-size:18px;cursor:pointer;">★</span>
+            <span style="color:#EF9F27;font-size:18px;cursor:pointer;">★</span>
+          </div>
+        </div>
+
+        <button class="btn-green" onclick="goTo('home');setNav('home')" style="max-width:220px;">Volver al inicio</button>
+      </div>
+    </div>
+
+
+
+    <!-- ────────── PUBLICAR ────────── -->
+    <div class="screen" id="screen-publish">
+      <div class="topbar">
+        <i class="ti ti-arrow-left" style="font-size:20px;cursor:pointer;color:var(--t2);" aria-hidden="true" onclick="goTo('home');setNav('home')"></i>
+        <div class="topbar-title">Publicar artículo</div>
+      </div>
+      <div class="scroll" style="padding:12px 16px;">
+        <div class="upload" style="margin-bottom:14px;" onclick="this.innerHTML='<div style=\'font-size:36px;margin-bottom:6px;\'>📷</div><div style=\'font-size:13px;font-weight:500;color:var(--g-d);\'>3 fotos añadidas</div>';this.classList.add('done')">
+          <i class="ti ti-camera" style="font-size:30px;color:var(--t3);margin-bottom:8px;" aria-hidden="true"></i>
+          <div style="font-size:13px;font-weight:500;color:var(--t);">Agregar fotos del artículo</div>
+          <div style="font-size:12px;color:var(--t2);">Hasta 5 fotos · toca para seleccionar</div>
+        </div>
+        <div class="field"><div class="lbl">Nombre del artículo</div><input class="inp" type="text" placeholder="Ej: Paraguas negro poco uso"></div>
+        <div class="field">
+          <div class="lbl">Categoría</div>
+          <select class="inp">
+            <option>Seleccionar categoría...</option>
+            <option>Herramientas</option>
+            <option>Electrónica</option>
+            <option>Ropa y accesorios</option>
+            <option>Hogar y muebles</option>
+            <option>Deportes</option>
+            <option>Libros</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div class="field"><div class="lbl">Descripción</div><textarea class="inp" rows="3" placeholder="Describe el estado, marca, por qué lo vendes..." style="resize:none;"></textarea></div>
+        <div class="field"><div class="lbl">Precio (CLP)</div><input class="inp" type="number" placeholder="Ej: 2000"></div>
+        <div class="field">
+          <div class="lbl">Modo de entrega</div>
+          <div style="display:flex;gap:8px;margin-top:2px;">
+            <label style="flex:1;border:1.5px solid var(--g);border-radius:var(--r-sm);padding:10px;text-align:center;cursor:pointer;background:var(--g-l);">
+              <input type="radio" name="delivery" style="display:none;">
+              <i class="ti ti-walk" style="font-size:18px;color:var(--g);display:block;margin-bottom:3px;" aria-hidden="true"></i>
+              <div style="font-size:12px;font-weight:500;color:var(--g-d);">Vecinal</div>
+            </label>
+            <label style="flex:1;border:0.5px solid var(--bdr2);border-radius:var(--r-sm);padding:10px;text-align:center;cursor:pointer;">
+              <input type="radio" name="delivery" style="display:none;">
+              <i class="ti ti-building-store" style="font-size:18px;color:var(--b);display:block;margin-bottom:3px;" aria-hidden="true"></i>
+              <div style="font-size:12px;font-weight:500;color:var(--t2);">Locker</div>
+            </label>
+            <label style="flex:1;border:0.5px solid var(--bdr2);border-radius:var(--r-sm);padding:10px;text-align:center;cursor:pointer;">
+              <input type="radio" name="delivery" style="display:none;">
+              <i class="ti ti-arrows-exchange" style="font-size:18px;color:var(--t2);display:block;margin-bottom:3px;" aria-hidden="true"></i>
+              <div style="font-size:12px;font-weight:500;color:var(--t2);">Ambos</div>
+            </label>
+          </div>
+        </div>
+        <div class="info info-g">
+          <i class="ti ti-award" style="font-size:16px;margin-top:1px;flex-shrink:0;" aria-hidden="true"></i>
+          <p>Ganarás <strong>+50 puntos vecino</strong> al publicar este artículo. ¡Acumula para canjear beneficios!</p>
+        </div>
+      </div>
+      <div class="cta">
+        <button class="btn-g" onclick="goTo('home');setNav('home')">
+          <i class="ti ti-upload" style="font-size:15px;vertical-align:-2px;" aria-hidden="true"></i>
+          Publicar artículo
+        </button>
+      </div>
+    </div>
+
+    <!-- ────────── PERFIL ────────── -->
+    <div class="screen" id="screen-profile">
+      <div class="prof-header">
+        <div class="prof-header-top">
+          <div class="av-large">JC</div>
+          <div style="flex:1;">
+            <div class="prof-name">Javiera Carrizo</div>
+            <div class="prof-tag"><i class="ti ti-shield-check" style="font-size:14px;" aria-hidden="true"></i> Vecina verificada</div>
+            <div class="prof-sub">Edificio Las Condes · Piso 8 · desde mayo 2025</div>
+          </div>
+          <i class="ti ti-settings" style="font-size:20px;color:rgba(255,255,255,.7);cursor:pointer;" aria-hidden="true"></i>
+        </div>
+        <div class="prof-stats">
+          <div class="pstat"><div class="pstat-num">4.9</div><div class="pstat-label">reputación</div></div>
+          <div class="pstat"><div class="pstat-num">18</div><div class="pstat-label">ventas</div></div>
+          <div class="pstat"><div class="pstat-num">12</div><div class="pstat-label">compras</div></div>
+          <div class="pstat"><div class="pstat-num">$48k</div><div class="pstat-label">ganado</div></div>
+        </div>
+      </div>
+      <div class="ptabs">
+        <div class="ptab active" id="pt-pub" onclick="switchTab('pub')">Publicaciones</div>
+        <div class="ptab" id="pt-rev" onclick="switchTab('rev')">Reseñas (12)</div>
+        <div class="ptab" id="pt-his" onclick="switchTab('his')">Historial</div>
+      </div>
+      <div class="scroll">
+        <div id="panel-pub">
+          <div class="item-card">
+            <div class="item-img">🌂</div>
+            <div style="flex:1;">
+              <div class="item-name">Paraguas negro</div>
+              <div class="item-sub">Publicado hace 2h</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div class="item-price">$2.000</div><span class="pill p-g">Activo</span>
+              </div>
+            </div>
+          </div>
+          <div class="item-card">
+            <div class="item-img">🔌</div>
+            <div style="flex:1;">
+              <div class="item-name">Cargador USB-C</div>
+              <div class="item-sub">Publicado hace 3 días</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div class="item-price">$1.500</div><span class="pill p-g">Activo</span>
+              </div>
+            </div>
+          </div>
+          <div class="item-card">
+            <div class="item-img">👗</div>
+            <div style="flex:1;">
+              <div class="item-name">Vestido azul talla S</div>
+              <div class="item-sub">Vendido hace 1 semana</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div class="item-price" style="color:var(--t2);">$8.000</div><span class="pill p-gr">Vendido</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="panel-rev" style="display:none;">
+          <div class="row row-tap" style="align-items:flex-start;">
+            <div class="av av-mk">MK</div>
+            <div style="flex:1;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+                <div style="font-size:13px;font-weight:500;">Miguel Kroll</div>
+                <div><span class="star">★★★★★</span></div>
+              </div>
+              <div style="font-size:12px;color:var(--t2);line-height:1.5;">Rapidísima entrega, paraguas en perfecto estado. Muy buena vecina.</div>
+              <div style="font-size:11px;color:var(--t3);margin-top:3px;">hace 2 días · Paraguas negro</div>
+            </div>
+          </div>
+          <div class="row row-tap" style="align-items:flex-start;">
+            <div class="av av-ap">AP</div>
+            <div style="flex:1;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+                <div style="font-size:13px;font-weight:500;">Andrea Parra</div>
+                <div><span class="star">★★★★</span><span class="star-empty">★</span></div>
+              </div>
+              <div style="font-size:12px;color:var(--t2);line-height:1.5;">Buen trato, llegó en 5 minutos. Cargador funcionaba perfecto.</div>
+              <div style="font-size:11px;color:var(--t3);margin-top:3px;">hace 5 días · Cargador USB-C</div>
+            </div>
+          </div>
+          <div class="row row-tap" style="align-items:flex-start;">
+            <div class="av av-cr">CR</div>
+            <div style="flex:1;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+                <div style="font-size:13px;font-weight:500;">Camila Rojas</div>
+                <div><span class="star">★★★★★</span></div>
+              </div>
+              <div style="font-size:12px;color:var(--t2);line-height:1.5;">Todo perfecto, el vestido tal cual la foto.</div>
+              <div style="font-size:11px;color:var(--t3);margin-top:3px;">hace 1 semana · Vestido azul</div>
+            </div>
+          </div>
+          <div style="padding:10px 16px;">
+            <button class="btn-o" style="margin-top:0;" onclick="goTo('reviews');setNav('reviews')">Ver todas las reseñas →</button>
+          </div>
+        </div>
+        <div id="panel-his" style="display:none;">
+          <div class="row" style="align-items:center;">
+            <div style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--g-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-arrow-up" style="font-size:16px;color:var(--g);" aria-hidden="true"></i></div>
+            <div style="flex:1;"><div style="font-size:13px;font-weight:500;">Vendiste paraguas negro</div><div style="font-size:11px;color:var(--t2);">Entrega vecinal · hace 2 días</div></div>
+            <div style="font-size:13px;font-weight:500;color:var(--g);">+$2.000</div>
+          </div>
+          <div class="row" style="align-items:center;">
+            <div style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--b-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-arrow-down" style="font-size:16px;color:var(--b);" aria-hidden="true"></i></div>
+            <div style="flex:1;"><div style="font-size:13px;font-weight:500;">Compraste destornillador set</div><div style="font-size:11px;color:var(--t2);">Locker Copec · hace 4 días</div></div>
+            <div style="font-size:13px;font-weight:500;color:var(--t2);">-$3.500</div>
+          </div>
+          <div class="row" style="align-items:center;">
+            <div style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--g-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-arrow-up" style="font-size:16px;color:var(--g);" aria-hidden="true"></i></div>
+            <div style="flex:1;"><div style="font-size:13px;font-weight:500;">Vendiste cargador USB-C</div><div style="font-size:11px;color:var(--t2);">Entrega vecinal · hace 5 días</div></div>
+            <div style="font-size:13px;font-weight:500;color:var(--g);">+$1.500</div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-item" onclick="goTo('home');setNav('home')"><i class="ti ti-home" style="font-size:20px;" aria-hidden="true"></i>Inicio</div>
+        <div class="tab-item" onclick="goTo('map');setNav('map')"><i class="ti ti-map" style="font-size:20px;" aria-hidden="true"></i>Mapa</div>
+        <div class="tab-item" onclick="goTo('publish');setNav('publish')"><i class="ti ti-plus-circle" style="font-size:20px;" aria-hidden="true"></i>Publicar</div>
+        <div class="tab-item" onclick="goTo('sales');setNav('sales')"><i class="ti ti-chart-bar" style="font-size:20px;" aria-hidden="true"></i>Ventas</div>
+        <div class="tab-item active"><i class="ti ti-user" style="font-size:20px;" aria-hidden="true"></i>Perfil</div>
+      </div>
+    </div>
+
+    <!-- ────────── RESEÑAS ────────── -->
+    <div class="screen" id="screen-reviews">
+      <div class="topbar">
+        <i class="ti ti-arrow-left" style="font-size:20px;cursor:pointer;color:var(--t2);" aria-hidden="true" onclick="goTo('profile');setNav('profile')"></i>
+        <div class="topbar-title">Mis reseñas</div>
+      </div>
+      <div style="padding:14px 16px;border-bottom:0.5px solid var(--bdr);display:flex;gap:16px;align-items:center;flex-shrink:0;">
+        <div style="text-align:center;">
+          <div class="rating-big">4.9</div>
+          <div style="font-size:16px;color:#EF9F27;">★★★★★</div>
+          <div style="font-size:11px;color:var(--t2);margin-top:2px;">12 reseñas</div>
+        </div>
+        <div style="flex:1;">
+          <div class="bar-row"><span style="font-size:11px;color:var(--t2);width:12px;">5</span><div class="bar-track"><div class="bar-fill" style="width:83%;"></div></div><span style="font-size:11px;color:var(--t2);">10</span></div>
+          <div class="bar-row"><span style="font-size:11px;color:var(--t2);width:12px;">4</span><div class="bar-track"><div class="bar-fill" style="width:17%;background:#9FE1CB;"></div></div><span style="font-size:11px;color:var(--t2);">2</span></div>
+          <div class="bar-row"><span style="font-size:11px;color:var(--t2);width:12px;">3</span><div class="bar-track"><div class="bar-fill" style="width:0%;"></div></div><span style="font-size:11px;color:var(--t2);">0</span></div>
+          <div class="bar-row"><span style="font-size:11px;color:var(--t2);width:12px;">2</span><div class="bar-track"><div class="bar-fill" style="width:0%;"></div></div><span style="font-size:11px;color:var(--t2);">0</span></div>
+          <div class="bar-row"><span style="font-size:11px;color:var(--t2);width:12px;">1</span><div class="bar-track"><div class="bar-fill" style="width:0%;"></div></div><span style="font-size:11px;color:var(--t2);">0</span></div>
+        </div>
+      </div>
+      <div class="scroll">
+        <div class="row row-tap" style="align-items:flex-start;">
+          <div class="av av-mk">MK</div>
+          <div style="flex:1;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px;"><div style="font-size:13px;font-weight:500;">Miguel Kroll</div><span class="star">★★★★★</span></div>
+            <div style="font-size:12px;color:var(--t2);line-height:1.5;">Rapidísima entrega, el paraguas estaba perfecto. Muy buena vecina.</div>
+            <div style="font-size:11px;color:var(--t3);margin-top:3px;">hace 2 días · Paraguas negro</div>
+          </div>
+        </div>
+        <div class="row row-tap" style="align-items:flex-start;">
+          <div class="av av-ap">AP</div>
+          <div style="flex:1;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px;"><div style="font-size:13px;font-weight:500;">Andrea Parra</div><div><span class="star">★★★★</span><span class="star-empty">★</span></div></div>
+            <div style="font-size:12px;color:var(--t2);line-height:1.5;">Buen trato, llegó en 5 minutos. Cargador funcionaba perfecto.</div>
+            <div style="font-size:11px;color:var(--t3);margin-top:3px;">hace 5 días · Cargador USB-C</div>
+          </div>
+        </div>
+        <div class="row row-tap" style="align-items:flex-start;">
+          <div class="av av-cr">CR</div>
+          <div style="flex:1;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px;"><div style="font-size:13px;font-weight:500;">Camila Rojas</div><span class="star">★★★★★</span></div>
+            <div style="font-size:12px;color:var(--t2);line-height:1.5;">Todo perfecto, el vestido era exactamente como la foto.</div>
+            <div style="font-size:11px;color:var(--t3);margin-top:3px;">hace 1 semana · Vestido azul</div>
+          </div>
+        </div>
+        <div class="row row-tap" style="align-items:flex-start;">
+          <div class="av av-ls">LS</div>
+          <div style="flex:1;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px;"><div style="font-size:13px;font-weight:500;">Luis Sepúlveda</div><span class="star">★★★★★</span></div>
+            <div style="font-size:12px;color:var(--t2);line-height:1.5;">Excelente trato. Artículo tal como se describió.</div>
+            <div style="font-size:11px;color:var(--t3);margin-top:3px;">hace 2 semanas · Destornillador set</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ────────── VENTAS ────────── -->
+    <div class="screen" id="screen-sales">
+      <div class="topbar">
+        <i class="ti ti-arrow-left" style="font-size:20px;cursor:pointer;color:var(--t2);" aria-hidden="true" onclick="goTo('profile');setNav('profile')"></i>
+        <div class="topbar-title">Panel de ventas</div>
+        <span class="pill p-g" style="font-size:10px;">Mayo 2025</span>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-num" style="color:var(--g);">$48.000</div><div class="kpi-sub">total ganado</div></div>
+        <div class="kpi"><div class="kpi-num">18</div><div class="kpi-sub">ventas totales</div></div>
+        <div class="kpi"><div class="kpi-num">4.9 ★</div><div class="kpi-sub">reputación</div></div>
+        <div class="kpi"><div class="kpi-num">97%</div><div class="kpi-sub">tasa de éxito</div></div>
+      </div>
+      <div class="sec-label">Últimas ventas</div>
+      <div class="scroll">
+        <div class="row" style="align-items:center;">
+          <div style="width:38px;height:38px;border-radius:var(--r-sm);background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🌂</div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:500;">Paraguas negro</div><div style="display:flex;gap:6px;margin-top:2px;"><span class="pill p-g" style="font-size:10px;">Vecinal</span><span style="font-size:11px;color:var(--t2);">hace 2 días</span></div></div>
+          <div style="text-align:right;"><div style="font-size:13px;font-weight:500;color:var(--g);">+$2.000</div><div style="font-size:10px;color:var(--t3);">comis. $200</div></div>
+        </div>
+        <div class="row" style="align-items:center;">
+          <div style="width:38px;height:38px;border-radius:var(--r-sm);background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🔌</div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:500;">Cargador USB-C</div><div style="display:flex;gap:6px;margin-top:2px;"><span class="pill p-g" style="font-size:10px;">Vecinal</span><span style="font-size:11px;color:var(--t2);">hace 5 días</span></div></div>
+          <div style="text-align:right;"><div style="font-size:13px;font-weight:500;color:var(--g);">+$1.500</div><div style="font-size:10px;color:var(--t3);">comis. $150</div></div>
+        </div>
+        <div class="row" style="align-items:center;">
+          <div style="width:38px;height:38px;border-radius:var(--r-sm);background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">👗</div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:500;">Vestido azul talla S</div><div style="display:flex;gap:6px;margin-top:2px;"><span class="pill p-b" style="font-size:10px;">Locker Copec</span><span style="font-size:11px;color:var(--t2);">hace 1 sem.</span></div></div>
+          <div style="text-align:right;"><div style="font-size:13px;font-weight:500;color:var(--g);">+$8.000</div><div style="font-size:10px;color:var(--t3);">comis. $800</div></div>
+        </div>
+        <div class="row" style="align-items:center;">
+          <div style="width:38px;height:38px;border-radius:var(--r-sm);background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🔧</div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:500;">Destornillador set</div><div style="display:flex;gap:6px;margin-top:2px;"><span class="pill p-b" style="font-size:10px;">Locker Copec</span><span style="font-size:11px;color:var(--t2);">hace 2 sem.</span></div></div>
+          <div style="text-align:right;"><div style="font-size:13px;font-weight:500;color:var(--g);">+$3.500</div><div style="font-size:10px;color:var(--t3);">comis. $350</div></div>
+        </div>
+      </div>
+      <div class="cta">
+        <button class="btn-g"><i class="ti ti-download" style="font-size:15px;vertical-align:-2px;" aria-hidden="true"></i> Exportar historial de ventas</button>
+      </div>
+    </div>
+
+    <!-- ────────── CHAT ────────── -->
+    <div class="screen" id="screen-chat">
+      <div class="topbar">
+        <i class="ti ti-arrow-left" style="font-size:20px;cursor:pointer;color:var(--t2);" aria-hidden="true" onclick="goTo('home');setNav('home')"></i>
+        <div style="display:flex;align-items:center;gap:8px;flex:1;">
+          <div class="av av-cr" style="width:28px;height:28px;font-size:10px;">CR</div>
+          <div><div style="font-size:14px;font-weight:500;">Camila Rojas</div><div style="font-size:11px;color:var(--g);">En línea</div></div>
+        </div>
+        <i class="ti ti-phone" style="font-size:20px;color:var(--t2);" aria-hidden="true"></i>
+      </div>
+      <div style="padding:8px 12px;background:var(--g-l);border-bottom:0.5px solid var(--bdr);flex-shrink:0;display:flex;align-items:center;gap:10px;">
+        <div style="font-size:18px;">🌂</div>
+        <div style="flex:1;"><div style="font-size:12px;font-weight:500;color:var(--g-d);">Paraguas negro · $2.000</div><div style="font-size:11px;color:var(--g-m);">Piso 12 · 40m de ti</div></div>
+        <button class="btn-g" style="width:auto;padding:6px 12px;font-size:12px;">Comprar</button>
+      </div>
+      <div class="scroll" style="padding:12px;">
+        <div style="text-align:center;font-size:11px;color:var(--t3);margin-bottom:12px;">hoy · 9:35 AM</div>
+        <div style="display:flex;justify-content:flex-start;margin-bottom:10px;">
+          <div style="max-width:75%;background:var(--bg2);border-radius:16px 16px 16px 4px;padding:9px 13px;font-size:13px;line-height:1.4;">Hola! Vi tu paraguas, ¿sigue disponible?</div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+          <div style="max-width:75%;background:var(--g);border-radius:16px 16px 4px 16px;padding:9px 13px;font-size:13px;color:#fff;line-height:1.4;">Sí! Está perfecto, casi sin uso.</div>
+        </div>
+        <div style="display:flex;justify-content:flex-start;margin-bottom:10px;">
+          <div style="max-width:75%;background:var(--bg2);border-radius:16px 16px 16px 4px;padding:9px 13px;font-size:13px;line-height:1.4;">¿Puedo pasar ahora a buscarlo?</div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+          <div style="max-width:75%;background:var(--g);border-radius:16px 16px 4px 16px;padding:9px 13px;font-size:13px;color:#fff;line-height:1.4;">Claro, te espero en portería en 5 min!</div>
+        </div>
+        <div style="display:flex;justify-content:flex-start;">
+          <div style="max-width:75%;background:var(--bg2);border-radius:16px 16px 16px 4px;padding:9px 13px;font-size:13px;line-height:1.4;">Perfecto, ya voy. Muchas gracias!</div>
+        </div>
+      </div>
+      <div style="padding:10px 12px;border-top:0.5px solid var(--bdr);display:flex;gap:8px;align-items:center;flex-shrink:0;">
+        <input class="inp" type="text" placeholder="Escribe un mensaje..." style="flex:1;">
+        <button class="btn-g" style="width:auto;padding:10px 14px;">
+          <i class="ti ti-send" style="font-size:16px;" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ────────── PUNTOS VECINO ────────── -->
+    <div class="screen" id="screen-points">
+      <div class="topbar">
+        <i class="ti ti-arrow-left" style="font-size:20px;cursor:pointer;color:var(--t2);" aria-hidden="true" onclick="goTo('home');setNav('home')"></i>
+        <div class="topbar-title">Puntos vecino</div>
+      </div>
+      <div class="scroll">
+        <div class="points-card">
+          <div style="font-size:12px;color:rgba(255,255,255,.7);margin-bottom:4px;">Tus puntos acumulados</div>
+          <div class="pts-num">340 pts</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.8);margin-top:6px;">A 160 puntos de tu próxima recompensa</div>
+          <div style="background:rgba(255,255,255,.2);border-radius:20px;height:6px;margin-top:10px;overflow:hidden;">
+            <div style="height:100%;width:68%;background:#fff;border-radius:20px;"></div>
+          </div>
+        </div>
+
+        <div class="sec-label" style="margin-top:4px;">Cómo ganar puntos</div>
+        <div class="row" style="align-items:center;">
+          <div style="width:38px;height:38px;border-radius:var(--r-sm);background:var(--g-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-upload" style="font-size:18px;color:var(--g);" aria-hidden="true"></i></div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:500;">Publicar artículo</div><div style="font-size:12px;color:var(--t2);">+50 puntos por publicación</div></div>
+          <span class="pill p-g">+50</span>
+        </div>
+        <div class="row" style="align-items:center;">
+          <div style="width:38px;height:38px;border-radius:var(--r-sm);background:var(--g-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-coin" style="font-size:18px;color:var(--g);" aria-hidden="true"></i></div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:500;">Completar una venta</div><div style="font-size:12px;color:var(--t2);">+100 puntos por transacción</div></div>
+          <span class="pill p-g">+100</span>
+        </div>
+        <div class="row" style="align-items:center;">
+          <div style="width:38px;height:38px;border-radius:var(--r-sm);background:var(--g-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-star" style="font-size:18px;color:var(--g);" aria-hidden="true"></i></div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:500;">Recibir reseña de 5 estrellas</div><div style="font-size:12px;color:var(--t2);">+30 puntos por reseña</div></div>
+          <span class="pill p-g">+30</span>
+        </div>
+        <div class="row" style="align-items:center;">
+          <div style="width:38px;height:38px;border-radius:var(--r-sm);background:var(--g-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-users" style="font-size:18px;color:var(--g);" aria-hidden="true"></i></div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:500;">Referir un vecino</div><div style="font-size:12px;color:var(--t2);">+200 puntos al verificarse</div></div>
+          <span class="pill p-g">+200</span>
+        </div>
+
+        <div class="sec-label">Recompensas disponibles</div>
+        <div class="row row-tap" style="align-items:center;">
+          <div style="width:38px;height:38px;border-radius:var(--r-sm);background:var(--b-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-gas-station" style="font-size:18px;color:var(--b);" aria-hidden="true"></i></div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:500;">Puntos Copec</div><div style="font-size:12px;color:var(--t2);">Canje en cualquier estación</div></div>
+          <span class="pill p-b">500 pts</span>
+        </div>
+        <div class="row row-tap" style="align-items:center;">
+          <div style="width:38px;height:38px;border-radius:var(--r-sm);background:var(--am-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-gift" style="font-size:18px;color:var(--am);" aria-hidden="true"></i></div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:500;">Sin comisión por 3 ventas</div><div style="font-size:12px;color:var(--t2);">0% take-rate temporalmente</div></div>
+          <span class="pill p-am">300 pts</span>
+        </div>
+        <div class="row row-tap" style="align-items:center;">
+          <div style="width:38px;height:38px;border-radius:var(--r-sm);background:var(--re-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-building-store" style="font-size:18px;color:var(--re-d);" aria-hidden="true"></i></div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:500;">Locker gratis · 1 mes</div><div style="font-size:12px;color:var(--t2);">Sin costo de uso Blue Express</div></div>
+          <span class="pill p-re">500 pts</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ────────── PRIVACIDAD (para la comisión) ────────── -->
+    <div class="screen" id="screen-privacy">
+      <div class="topbar">
+        <i class="ti ti-arrow-left" style="font-size:20px;cursor:pointer;color:var(--t2);" aria-hidden="true" onclick="goTo('home');setNav('home')"></i>
+        <div class="topbar-title">¿Cómo protegemos tu dirección?</div>
+        <i class="ti ti-eye-off" style="font-size:20px;color:var(--g);" aria-hidden="true"></i>
+      </div>
+
+      <div class="scroll" style="padding:0 0 12px;">
+
+        <!-- Hero explicativo -->
+        <div style="background:linear-gradient(135deg,var(--g-d) 0%,var(--g-m) 100%);padding:18px 16px;color:#fff;">
+          <div style="font-size:15px;font-weight:600;margin-bottom:6px;font-family:var(--head);">Compra y vende sin revelar dónde vives</div>
+          <div style="font-size:12px;line-height:1.6;opacity:.88;">whereisit nunca muestra tu dirección exacta, número de departamento ni piso a personas fuera de tu edificio. Solo tú decides cuánto compartes.</div>
+        </div>
+
+        <!-- Los 3 niveles de privacidad -->
+        <div style="padding:12px 16px 6px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);">Los 3 niveles de privacidad</div>
+
+        <!-- Nivel 1: mismo edificio -->
+        <div style="margin:0 16px 10px;border-radius:var(--r);border:1.5px solid rgba(11,61,92,.18);overflow:hidden;">
+          <div style="background:var(--g-l);padding:10px 14px;display:flex;align-items:center;gap:10px;">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i class="ti ti-building" style="font-size:16px;color:#fff;" aria-hidden="true"></i>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--g-d);">Nivel 1 · Mismo edificio</div>
+              <div style="font-size:11px;color:var(--g-m);">Vecinos verificados del mismo building</div>
+            </div>
+            <span style="margin-left:auto;font-size:10px;font-weight:600;background:var(--g);color:#fff;padding:3px 8px;border-radius:20px;">+ abierto</span>
+          </div>
+          <div style="padding:12px 14px;background:#fff;">
+            <div style="display:flex;gap:8px;margin-bottom:6px;align-items:flex-start;">
+              <i class="ti ti-check" style="font-size:14px;color:var(--g);margin-top:1px;flex-shrink:0;" aria-hidden="true"></i>
+              <span style="font-size:12px;color:var(--t);">Se muestra el <strong>piso del vendedor</strong> (no el depto exacto)</span>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:6px;align-items:flex-start;">
+              <i class="ti ti-check" style="font-size:14px;color:var(--g);margin-top:1px;flex-shrink:0;" aria-hidden="true"></i>
+              <span style="font-size:12px;color:var(--t);">Entrega vecinal permitida — te encontráis en portería o pasillo</span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:flex-start;">
+              <i class="ti ti-x" style="font-size:14px;color:var(--re-d);margin-top:1px;flex-shrink:0;" aria-hidden="true"></i>
+              <span style="font-size:12px;color:var(--t);">Nunca se comparte número de departamento</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Nivel 2: edificio distinto / zona cercana -->
+        <div style="margin:0 16px 10px;border-radius:var(--r);border:1.5px solid rgba(184,115,51,.25);overflow:hidden;">
+          <div style="background:var(--b-l);padding:10px 14px;display:flex;align-items:center;gap:10px;">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--b);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i class="ti ti-map-2" style="font-size:16px;color:#fff;" aria-hidden="true"></i>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--b-d);">Nivel 2 · Zona cercana</div>
+              <div style="font-size:11px;color:var(--b-d);opacity:.8;">Usuarios verificados en radio de 100m pero edificio distinto</div>
+            </div>
+            <span style="margin-left:auto;font-size:10px;font-weight:600;background:var(--b);color:#fff;padding:3px 8px;border-radius:20px;">protegido</span>
+          </div>
+          <div style="padding:12px 14px;background:#fff;">
+            <div style="display:flex;gap:8px;margin-bottom:6px;align-items:flex-start;">
+              <i class="ti ti-check" style="font-size:14px;color:var(--g);margin-top:1px;flex-shrink:0;" aria-hidden="true"></i>
+              <span style="font-size:12px;color:var(--t);">Solo se muestra <strong>zona aproximada</strong> en el mapa (círculo difuso, sin pin exacto)</span>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:6px;align-items:flex-start;">
+              <i class="ti ti-check" style="font-size:14px;color:var(--g);margin-top:1px;flex-shrink:0;" aria-hidden="true"></i>
+              <span style="font-size:12px;color:var(--t);">El vendedor aparece como <strong>"Usuario verificado · zona cercana"</strong>, nunca nombre completo ni dirección</span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:flex-start;">
+              <i class="ti ti-building-store" style="font-size:14px;color:var(--b);margin-top:1px;flex-shrink:0;" aria-hidden="true"></i>
+              <span style="font-size:12px;color:var(--t);">Entrega <strong>solo por locker Copec</strong> — sin encuentro en domicilio</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Nivel 3: alto valor / locker obligatorio -->
+        <div style="margin:0 16px 10px;border-radius:var(--r);border:1.5px solid rgba(113,43,19,.2);overflow:hidden;">
+          <div style="background:var(--re-l);padding:10px 14px;display:flex;align-items:center;gap:10px;">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--re-d);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i class="ti ti-lock" style="font-size:16px;color:#fff;" aria-hidden="true"></i>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--re-d);">Nivel 3 · Alto valor</div>
+              <div style="font-size:11px;color:var(--re-d);opacity:.8;">Artículos sobre $50.000 (en MVP)</div>
+            </div>
+            <span style="margin-left:auto;font-size:10px;font-weight:600;background:var(--re-d);color:#fff;padding:3px 8px;border-radius:20px;">máx. protección</span>
+          </div>
+          <div style="padding:12px 14px;background:#fff;">
+            <div style="display:flex;gap:8px;margin-bottom:6px;align-items:flex-start;">
+              <i class="ti ti-x" style="font-size:14px;color:var(--re-d);margin-top:1px;flex-shrink:0;" aria-hidden="true"></i>
+              <span style="font-size:12px;color:var(--t);">Entrega vecinal <strong>bloqueada</strong> — no hay encuentro presencial</span>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:6px;align-items:flex-start;">
+              <i class="ti ti-check" style="font-size:14px;color:var(--g);margin-top:1px;flex-shrink:0;" aria-hidden="true"></i>
+              <span style="font-size:12px;color:var(--t);">Solo retiro en <strong>locker Copec</strong> con QR + PIN cifrado</span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:flex-start;">
+              <i class="ti ti-check" style="font-size:14px;color:var(--g);margin-top:1px;flex-shrink:0;" aria-hidden="true"></i>
+              <span style="font-size:12px;color:var(--t);">Pago retenido en custodia hasta confirmar retiro. Nadie sabe dónde vive nadie.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Qué NUNCA se revela -->
+        <div style="margin:4px 16px 10px;padding:14px;background:var(--t);border-radius:var(--r);color:#fff;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+            <i class="ti ti-eye-off" style="font-size:16px;" aria-hidden="true"></i> Esto NUNCA se revela a nadie
+          </div>
+          <div style="display:flex;flex-direction:column;gap:7px;">
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.85);">
+              <i class="ti ti-x" style="font-size:13px;color:#ff6b6b;flex-shrink:0;" aria-hidden="true"></i> Número de departamento exacto
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.85);">
+              <i class="ti ti-x" style="font-size:13px;color:#ff6b6b;flex-shrink:0;" aria-hidden="true"></i> Nombre completo a desconocidos del edificio
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.85);">
+              <i class="ti ti-x" style="font-size:13px;color:#ff6b6b;flex-shrink:0;" aria-hidden="true"></i> RUT ni datos del carnet a otros usuarios
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.85);">
+              <i class="ti ti-x" style="font-size:13px;color:#ff6b6b;flex-shrink:0;" aria-hidden="true"></i> Coordenadas GPS exactas en el mapa
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.85);">
+              <i class="ti ti-x" style="font-size:13px;color:#ff6b6b;flex-shrink:0;" aria-hidden="true"></i> Número de teléfono antes de completar compra
+            </div>
+          </div>
+        </div>
+
+        <!-- Comparación con alternativas -->
+        <div style="margin:0 16px 10px;padding:12px 14px;background:#fff;border:.5px solid var(--bdr);border-radius:var(--r);">
+          <div style="font-size:12px;font-weight:600;color:var(--t);margin-bottom:8px;">whereisit vs. alternativas sin protección</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;font-size:10px;text-align:center;">
+            <div style="padding:6px 4px;font-weight:600;color:var(--t2);">Característica</div>
+            <div style="padding:6px 4px;font-weight:600;color:var(--g);border-left:.5px solid var(--bdr);">whereisit</div>
+            <div style="padding:6px 4px;font-weight:600;color:var(--t2);border-left:.5px solid var(--bdr);">WhatsApp grupal</div>
+            <div style="padding:6px 4px;color:var(--t2);border-top:.5px solid var(--bdr);">Dirección exacta</div>
+            <div style="padding:6px 4px;color:var(--g);font-weight:500;border-left:.5px solid var(--bdr);border-top:.5px solid var(--bdr);">Nunca</div>
+            <div style="padding:6px 4px;color:var(--re-d);font-weight:500;border-left:.5px solid var(--bdr);border-top:.5px solid var(--bdr);">Expuesta</div>
+            <div style="padding:6px 4px;color:var(--t2);border-top:.5px solid var(--bdr);">Pago seguro</div>
+            <div style="padding:6px 4px;color:var(--g);font-weight:500;border-left:.5px solid var(--bdr);border-top:.5px solid var(--bdr);">In-app</div>
+            <div style="padding:6px 4px;color:var(--re-d);font-weight:500;border-left:.5px solid var(--bdr);border-top:.5px solid var(--bdr);">Efectivo</div>
+            <div style="padding:6px 4px;color:var(--t2);border-top:.5px solid var(--bdr);">Identidad verificada</div>
+            <div style="padding:6px 4px;color:var(--g);font-weight:500;border-left:.5px solid var(--bdr);border-top:.5px solid var(--bdr);">Carnet + RC</div>
+            <div style="padding:6px 4px;color:var(--re-d);font-weight:500;border-left:.5px solid var(--bdr);border-top:.5px solid var(--bdr);">Ninguna</div>
+          </div>
+        </div>
+
+        <div style="margin:0 16px;padding:10px 12px;background:var(--g-l);border-radius:var(--r-sm);display:flex;gap:8px;align-items:flex-start;">
+          <i class="ti ti-shield-check" style="font-size:16px;color:var(--g-d);margin-top:1px;flex-shrink:0;" aria-hidden="true"></i>
+          <p style="font-size:11px;color:var(--g-d);line-height:1.5;">Los datos del carnet se usan solo para verificación con Registro Civil de Chile. Las imágenes se eliminan tras validar. Cumplimos con la Ley 19.628 de Protección de Datos Personales.</p>
+        </div>
+
+      </div>
+
+      <div class="cta">
+        <button class="btn-g" onclick="goTo('home');setNav('home')">Entendido · volver al inicio</button>
+      </div>
+    </div>
+
+  </div>
+  </div>
+
+</div>
+
+<footer>
+  whereisit · Demo interactiva · Desafío Futuro Copec Avonni 2026 · Tu vecino tiene lo que necesitas. En 3 minutos, no en 24 horas.
+</footer>
+</div>
+
+<script>
+let currentPin = 1;
+const HIGH_VALUE_LIMIT = 8000; // Umbral demo: en el MVP real este valor puede ser $50.000+
+const pins=[
+  {e:'🌂',n:'Paraguas negro',s:'Camila R. · Piso 12',p:'$2.000',d:'40m · 1 min',scope:'same'},
+  {e:'🔧',n:'Destornillador set',s:'Miguel K. · Piso 5',p:'$3.500',d:'60m · 2 min',scope:'same'},
+  {e:'🔌',n:'Cargador MacBook',s:'Usuario verificado · zona cercana',p:'$4.000',d:'70-100m · aprox.',scope:'protected'},
+  {e:'👟',n:'Zapatillas talla 40',s:'Usuario verificado · zona cercana',p:'$5.000',d:'80-120m · aprox.',scope:'protected'},
+  {e:'🔨',n:'Taladro eléctrico',s:'Usuario verificado · zona cercana',p:'$8.000',d:'50-90m · aprox.',scope:'protected', highValue:true},
+  {e:'🏪',n:'Locker Copec Las Condes',s:'Punto seguro de retiro',p:'8 libres',d:'350m',scope:'locker'},
+];
+
+function goTo(s){
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+  const el=document.getElementById('screen-'+s);
+  if(el) el.classList.add('active');
+}
+
+function setNav(id){
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  const el=document.getElementById('nav-'+id);
+  if(el) el.classList.add('active');
+  // alias: detail y privacy no tienen nav separado en algunos flujos
+}
+
+function simulateVerif(){
+  const row=document.getElementById('verif-row');
+  row.innerHTML='<i class="ti ti-circle-check" style="font-size:16px;color:var(--g);" aria-hidden="true"></i><span style="font-size:13px;">Validado con Registro Civil ✓</span>';
+  setTimeout(()=>{goTo('verified');setNav('verify');},700);
+}
+
+function selPin(n){
+  currentPin = n;
+  for(let i=1;i<=6;i++){
+    const b=document.getElementById('pb'+i);
+    if(!b) continue;
+    if(i===6) b.className='pin-bub lk';
+    else b.className='pin-bub'+(i===n?' sel':'');
+  }
+  const p=pins[n-1];
+  document.getElementById('mc-em').textContent=p.e;
+  document.getElementById('mc-name').textContent=p.n;
+  document.getElementById('mc-seller').textContent=p.s;
+  const priv=document.getElementById('mc-privacy');
+  if (p.scope==='same') {
+    priv.innerHTML='<span class="privacy-badge" style="background:var(--g-l);color:var(--g-d);"><i class="ti ti-building" aria-hidden="true"></i> mismo edificio · piso visible</span>';
+  } else if (p.scope==='locker') {
+    priv.innerHTML='<span class="privacy-badge"><i class="ti ti-lock" aria-hidden="true"></i> retiro seguro sin revelar domicilio</span>';
+  } else {
+    priv.innerHTML='<span class="privacy-badge"><i class="ti ti-shield-lock" aria-hidden="true"></i> ubicación aproximada · piso oculto</span>';
+  }
+  document.getElementById('mc-price').textContent=p.p;
+  document.getElementById('mc-dist').innerHTML='<i class="ti ti-walk" style="font-size:12px;" aria-hidden="true"></i> '+p.d;
+}
+
+function priceToNumber(price){
+  return Number(String(price).replace(/[^0-9]/g,'')) || 0;
+}
+
+function isHighValueItem(p){
+  return p.highValue || priceToNumber(p.p) >= HIGH_VALUE_LIMIT;
+}
+
+function openDetailFromMap(){
+  const p = pins[currentPin-1];
+  document.getElementById('detail-emoji').textContent = p.e || '🏪';
+  document.getElementById('detail-name').textContent = p.n;
+  document.getElementById('detail-sub').textContent = p.scope === 'same' ? 'Publicado hace 2h · mismo edificio' : 'Publicado hace 2h · ubicación protegida';
+  document.getElementById('detail-price').textContent = p.p;
+  document.getElementById('detail-distance').innerHTML = '<i class="ti ti-walk"></i> '+p.d;
+  document.getElementById('detail-price-lock').innerHTML = '<strong>Precio protegido:</strong> '+p.p+' queda bloqueado. No se permite pedir dinero extra en persona.';
+
+  const sellerLine = document.getElementById('detail-seller-line');
+  const trustSub = document.getElementById('detail-trust-sub');
+  const vecinal = document.getElementById('mc-vecinal');
+  const locker = document.getElementById('mc-locker');
+  const vecinalSub = document.getElementById('vecinal-sub');
+  const rule = document.getElementById('high-value-rule');
+  const ruleText = document.getElementById('high-value-rule-text');
+  const btnVecinal = document.getElementById('btn-vecinal-confirm');
+
+  const high = isHighValueItem(p);
+
+  if (p.scope === 'same') {
+    sellerLine.innerHTML = p.s.split(' · ')[0] + ' <span class="privacy-badge"><i class="ti ti-shield-check"></i> verificado</span>';
+    trustSub.textContent = 'Mismo edificio · piso visible solo para vecinos verificados';
+    vecinalSub.textContent = p.s.split(' · ')[0] + ' puede entregar en 3–5 min desde '+(p.s.includes('Piso') ? p.s.split(' · ').pop() : 'su piso')+'.';
+  } else {
+    sellerLine.innerHTML = 'Usuario verificado <span class="privacy-badge"><i class="ti ti-shield-lock"></i> ubicación protegida</span>';
+    trustSub.textContent = 'Fuera de tu edificio: no se muestra piso ni ubicación exacta';
+    vecinalSub.textContent = 'Entrega directa no recomendada: ubicación protegida. Usa locker seguro.';
+  }
+
+  if (high) {
+    vecinal.classList.add('disabled');
+    vecinal.classList.remove('selected');
+    locker.classList.add('selected');
+    rule.classList.add('active');
+    ruleText.innerHTML = '<strong>Locker obligatorio:</strong> este artículo es de alto valor, por seguridad solo puede retirarse en locker Copec/Blue Express.';
+    btnVecinal.disabled = true;
+    btnVecinal.style.opacity = '.45';
+    btnVecinal.style.cursor = 'not-allowed';
+    btnVecinal.textContent = 'Entrega vecinal bloqueada por seguridad';
+  } else {
+    vecinal.classList.remove('disabled');
+    vecinal.classList.add('selected');
+    locker.classList.remove('selected');
+    rule.classList.remove('active');
+    ruleText.innerHTML = '<strong>Regla de seguridad:</strong> productos de alto valor se envían solo por locker para evitar encuentros riesgosos y proteger el pago.';
+    btnVecinal.disabled = false;
+    btnVecinal.style.opacity = '1';
+    btnVecinal.style.cursor = 'pointer';
+    btnVecinal.textContent = 'Entrega vecinal · confirmar';
+  }
+
+  goTo('detail');
+  setNav('map');
+}
+
+function switchTab(t){
+  ['pub','rev','his'].forEach(k=>{
+    document.getElementById('panel-'+k).style.display=k===t?'block':'none';
+    const tab=document.getElementById('pt-'+k);
+    if(tab) tab.className='ptab'+(k===t?' active':'');
+  });
+}
+
+
+function selMode(m){
+  const v=document.getElementById('mc-vecinal');
+  if (m==='vecinal' && v && v.classList.contains('disabled')) return;
+  const l=document.getElementById('mc-locker');
+  if(v) v.className='mode-card'+(m==='vecinal'?' selected':'');
+  if(l) l.className='mode-card'+(m==='locker'?' selected':'');
+}
+function selLocker(id){
+  ['lk1','lk2','lk3'].forEach(k=>{
+    const row=document.getElementById(k);
+    const ic=document.getElementById(k+'-icon');
+    if(row) row.classList.toggle('sel', k===id);
+    if(ic){
+      ic.className='ti '+(k===id?'ti-circle-check':'ti-circle');
+      ic.style.color=k===id?'var(--g)':'var(--t3)';
+    }
+  });
+}
+
+</script>
+</body>
+</html>
